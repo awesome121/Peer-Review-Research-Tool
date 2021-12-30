@@ -1,0 +1,13 @@
+{
+    "tenant_id": "https://login.microsoftonline.com/dc781727-710e-4855-bc4c-690266a1b551",
+    "client_id": "dd89bb94-07f4-4e5d-b641-125fc96bfdee",
+    "scope": ["User.ReadBasic.All", "User.Read", "User.ReadWrite", "Mail.Read", "Mail.ReadWrite", "Mail.Send", "Mail.ReadBasic", "IMAP.AccessAsUser.All"],
+
+    "inbox" : "https://graph.microsoft.com/v1.0/me/mailFolders/Inbox",
+    "inbox_unread_msg": "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADgxMDlmYmI5LWY2MTQtNGE4MS1hYWI4LTVmMGE2ZDFmMDRhNQAuAAAAAAAZ6y7MDM6ORJv3xiz0silfAQA9uGn8Az_3T4raEV1GNLzvAAAAAAEMAAA=/messages?$filter=isread eq false&%top=10&$orderby=receivedDateTime",
+    
+    "msg" : "https://graph.microsoft.com/v1.0/me/messages/{}",
+    "reply_msg" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply"
+
+   
+}
