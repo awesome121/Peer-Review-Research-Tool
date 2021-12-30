@@ -1,19 +1,39 @@
+"""
+Provided (with header, see example):
+email_addr.csv          format: email_addr
+deadline.csv            format: submission_id, date
+
+Generated:
+email_addr.db:
+deadline.db
+num_review.db
+db_core.db
+
+
+"""
+
 
 import csv
 
 class Database:
     def __init__(self):
-        self.DATABASE = "db_core.csv"
-        self.ADDRESS_FILE = "address_list.csv"
-        self.NUM_REVIEW_FILE = "num_review.csv"
+        # Provided files:
+        self.EMAIL_ADDR = "email_addr.csv"
+        self.DEADLINE = "deadline.csv"
+        # Database generated files:
+        self.DB_EMAIL_ADDR = "email_addr.db"
+        self.DB_DEADLINE = "deadline.db"
+        self.DB_NUM_REVIEW = "num_review.db"
+        self.DB_CORE = "db_core.db"
+        # Database constants:
         self.max_submission = 6
-
         self.NUM_REVIEW_REQUEST = 3
 
     def create_database():
-        """ subscriber.db: email address of subscribers
-            db_core.db: a joined table
+        """ email_list.db: email address of subscribers
+            deadline.db: submission ID, date
             num_review.db: currently number of received distribution for each submission
+            db_core.db: a joined table
         """
         # addr_list = get_addr_list(NUM_REVIEW_FILE)
 
@@ -43,18 +63,19 @@ class Database:
 
 
 
-    def get_addr_list(addr_file):
+    def get_email_addr(addr_file):
         """parse text, return a list of addresses"""
         # addr_file = open(ADDRESS_FILE, encoding='utf-8-sig')
         # addr_list = addr_file.read().splitlines()
         # addr_file.close()
-        return addr_list
+        # return addr_list
+        raise NotImplementedError
 
     #-----------------------------------
 
 
     def is_subscriber(self, addr):
-        """Return True if the address is in address list"""
+        """Return True if the address is in email address list"""
         return True
         # file = open(ADDRESS_FILE, encoding='utf-8-sig')
         # lines = file.read().splitlines()

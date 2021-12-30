@@ -71,8 +71,10 @@ class MailHandler:
                 pass #ignore non-subscriber
             elif self.parser_.is_submission(subject):
                 self.send_submission_success(msg_id, mail)
+                # db_.store_submission(...)
             elif self.parser_.is_review(subject):
                 self.parser_.get_review_request()
+                #db_.store_review()
             elif self.parser_.is_evaluation(subject):
                 self.parser_.get_evaluation_request()
             else: # subscriber but invalid subject
