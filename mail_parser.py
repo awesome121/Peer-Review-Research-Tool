@@ -1,13 +1,21 @@
-# e.g.
-# Author -> Agent               Subject: "submission-1"
+"""
 
-# Agent -> Reviewer             Subject: "Review-Request"
-# Reviewer -> Agent             Subject: "Re: Review-Request"
+    e.g.
+    Author -> Agent               Subject: "submission-1"
 
-# Agent -> Original author      Subject: "evaluation-Request"
-# Original author -> Agent      Subject: "Re: evaluation-Request"
+    Agent -> Reviewer             Subject: "Review-Request"
+    Reviewer -> Agent             Subject: "Re: Review-Request"
+
+    Agent -> Original author      Subject: "evaluation-Request"
+    Original author -> Agent      Subject: "Re: evaluation-Request"
+"""
 
 class MailParser:
+    """
+        MailParser class, this class is used to get and analyse basic mail subjects.
+        Subject is valid only if it satisfies certain formats, please see example 
+        sabove.
+    """
     def __init__(self):
         pass
         self.max_submission = 6

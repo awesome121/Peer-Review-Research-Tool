@@ -1,3 +1,9 @@
+"""
+Mail Handler
+
+
+"""
+
 import re
 import msal, sys, requests, json, message_temp
 
@@ -67,11 +73,11 @@ class MailHandler:
         for mail in mails:
             msg_id, subject, from_ = self.parser_.parse_mail(mail)
             self.mark_as_read(msg_id)
-            if not self.db_.is_subscriber(from_):
+            if not self.db_.is_subscriber_addr(from_):
                 pass #ignore non-subscriber
             elif self.parser_.is_submission(subject):
+                db_.store_submission(from_, submission_id, msg_id, date)
                 self.send_submission_success(msg_id, mail)
-                # db_.store_submission(...)
             elif self.parser_.is_review(subject):
                 self.parser_.get_review_request()
                 #db_.store_review()
