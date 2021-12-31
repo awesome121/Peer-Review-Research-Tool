@@ -107,7 +107,7 @@ class Database:
         cur = con.cursor()
         cur.execute(f"SELECT * from {self.TB_EMAIL_LIST}")
         lines = cur.fetchall()
-        lines = [(line, 0) for line in lines]
+        lines = [(line[0], 0) for line in lines]
         cur.execute(f"CREATE TABLE '{self.TB_NUM_REVIEW}' (reviewer text, number integer)")
         cur.executemany(f"INSERT INTO '{self.TB_NUM_REVIEW}' (reviewer, number) values (?, ?)",\
                          lines)
@@ -126,18 +126,20 @@ class Database:
         addresses = cur.fetchall()
         lines = []
         for addr in addresses:
-            for subm_id in range(1, len(self.MAX_SUBMISSION) + 1):
-                lines += [(addr, subm_id) + (None, 0) + (None,) * 6 + (None,) * 3]
-        cur.execute(f"CREATE TABLE {self.TB_CHAIN} "+
-        "(author text, subm_id integer, subm_received text, " +
-        "'convo_id (review)' text, reviewer text, review_req_sent text, review_received text, " +
-        "'convo_id (eval)' text, rating integer, comment text, eval_req_sent text, eval_received text"
-        )
-        cur.executemany(f"INSERT INTO '{self.TB_CHAIN}' " + 
-        "(author, subm_id, subm_received, " +
-        "'convo_id (review)', reviewer, review_req_sent, review_received" +
-        "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" + 
-        " values (" + ", ".join(['?'] * 11) + ")", lines)
+            for subm_id in range(1, self.MAX_SUBMISSION + 1):
+                lines += [(addr[0], subm_id) + (None,) * 6 + (0,) + (None,) * 3]
+        # 3 + 4 + 5
+        cur.execute(f"CREATE TABLE {self.TB_CHAIN} "+\
+        "(author text, subm_id integer, subm_received text, " +\
+        "'convo_id (review)' text, reviewer text, " + \
+            "review_req_sent text, review_received text, " +\
+        "'convo_id (eval)' text, rating integer, comment text, " + \
+            "eval_req_sent text, eval_received text)")
+        cur.executemany(f"INSERT INTO '{self.TB_CHAIN}' " +\
+        "(author, subm_id, subm_received, " +\
+        "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
+        "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
+        " values (" + ", ".join(['?'] * 12) + ")", lines)
         con.commit()
 
 
