@@ -3,6 +3,7 @@ from mail_parser import MailParser
 from mail_handler import MailHandler
 
 db = Database()
+# db.create_database()
 parser = MailParser()
 mail_handler = MailHandler()
 mail_handler.db_ = db

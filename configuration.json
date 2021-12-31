@@ -4,7 +4,7 @@
     "scope": ["User.ReadBasic.All", "User.Read", "User.ReadWrite", "Mail.Read", "Mail.ReadWrite", "Mail.Send", "Mail.ReadBasic", "IMAP.AccessAsUser.All"],
 
     "inbox" : "https://graph.microsoft.com/v1.0/me/mailFolders/Inbox",
-    "inbox_unread_msg": "https://graph.microsoft.com/v1.0/me/mailFolders/AAMkADgxMDlmYmI5LWY2MTQtNGE4MS1hYWI4LTVmMGE2ZDFmMDRhNQAuAAAAAAAZ6y7MDM6ORJv3xiz0silfAQA9uGn8Az_3T4raEV1GNLzvAAAAAAEMAAA=/messages?$filter=isread eq false&%top=10&$orderby=receivedDateTime",
+    "inbox_unread_msg": "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?$filter=isread eq false&%top=10&$orderby=receivedDateTime",
     
     "msg" : "https://graph.microsoft.com/v1.0/me/messages/{}",
     "reply_msg" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply"

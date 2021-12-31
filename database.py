@@ -1,6 +1,6 @@
 """
     Provided (with header, see example):
-    email_addr.csv          format: email_addr
+    email_list.csv          format: email_list
     deadline.csv            format: submission_id, date
 
     Generated:
@@ -10,11 +10,11 @@
     email_list
     deadline
     num_review
-    db_core
+    db_chain
 """
 
 
-import csv, sqlite3
+import csv, sqlite3, sys
 
 class Database:
     """
@@ -27,7 +27,7 @@ class Database:
             Set constant file names and parameters
         """
         # Provided files:
-        self.EMAIL_ADDR = "email_addr.csv"
+        self.EMAIL_LIST = "email_list.csv"
         self.DEADLINE = "deadline.csv"
         # Database generated file:
         self.DATABASE = "database.db"
@@ -35,85 +35,110 @@ class Database:
         self.TB_EMAIL_LIST = "email_list"
         self.TB_DEADLINE = "deadline"
         self.TB_NUM_REVIEW = "num_review"
-        self.TB_CORE = "core"
+        self.TB_CHAIN = "chain"
         # Database constants:
         self.MAX_SUBMISSION = 6
         self.NUM_REVIEW_REQUEST = 3
+        
 #--------------------------------------------------
     def create_database(self):
         """ 
             ===This function can be called only on initialising database===
             This function further calls subsequent functions init_email_list, 
-            init_deadline, init_num_review, init_core to initialise tables
-            email_list, deadline, num_review, and core respectively.
+            init_deadline, init_num_review, init_chain to initialise tables
+            email_list, deadline, num_review, and chain respectively.
         
             email_list: email address of subscribers
             deadline: submission ID, date
             num_review: currently number of received distribution for each submission 
-            core: a joined table
+            chain: a joined table
         """
         con = sqlite3.connect(self.DATABASE)
-        cur = con.cursor()
-        self.init_email_list(cur)
-        self.init_deadline(cur)
-        self.init_num_review(cur)
-        self.init_core(cur)
-        con.commit()
+        self.init_email_list(con)
+        self.init_deadline(con)
+        self.init_num_review(con)
+        self.init_chain(con)
         con.close()
 
-    def init_email_list(self, cur):
+    def init_email_list(self, con):
         """
             ===This function can be called only on initialising database===
             Provided:
-                email_addr.csv 
+                connection to database.db
+                email_list.csv 
             Generates:
-                email_addr table in database.db
+                email_list table in database.db
         """
-        cur.execute(f'CREATE TABLE {self.TB_EMAIL_LIST} (address text)')
-        with open(self.EMAIL_ADDR) as file:
+        cur = con.cursor()
+        cur.execute(f"CREATE TABLE '{self.TB_EMAIL_LIST}' (address text)")
+        with open(self.EMAIL_LIST, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
-        cur.executemany(lines)
+        lines = [(line,) for line in lines]
+        print(lines)
+        cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
+        con.commit()
 
-    def init_deadline(self, cur):
+    def init_deadline(self, con):
         """
             ===This function can be called only on initialising database===
             Provided:
-                deadline.csv 
+                connection to database.db
+                deadline.csv
             Generates:
                 deadline table in database.db
         """
-        cur.execute(f'CREATE TABLE {self.TB_DEADLINE} (submission_id integer, date text)')
-        with open(self.DEADLINE) as file:
+        cur = con.cursor()
+        cur.execute(f"CREATE TABLE '{self.TB_DEADLINE}' (submission_id integer, date text)")
+        with open(self.DEADLINE, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
-        cur.executemany(lines)
+        lines = [(line,) for line in lines]
+        cur.executemany(f"INSERT INTO '{self.TB_DEADLINE}' (submission_id, date) values (?, ?)"\
+                        , lines)
+        con.commit()
 
-    def init_num_review(self, cur):
+    def init_num_review(self, con):
         """
             ===This function can be called only on initialising database===
             Provided:
-                email_addr.csv 
+                connection to database.db
             Generates:
                 num_review table in database.db
         """
-        cur.execute(f'CREATE TABLE {self.TB_NUM_REVIEW} (reviewer text, number integer)')
-        with open(self.EMAIL_ADDR) as file:
-            lines = file.read().splitlines()
+        cur = con.cursor()
+        cur.execute(f"SELECT * from {self.TB_EMAIL_LIST}")
+        lines = cur.fetchall()
         lines = [(line, 0) for line in lines]
-        cur.executemany(lines)
+        cur.execute(f"CREATE TABLE '{self.TB_NUM_REVIEW}' (reviewer text, number integer)")
+        cur.executemany(f"INSERT INTO '{self.TB_NUM_REVIEW}' (reviewer, number) values (?, ?)",\
+                         lines)
+        con.commit()
 
-    def init_core(self, cur):
+    def init_chain(self, con):
         """
             ===This function can be called only on initialising database===
             Provided:
-                email_addr.csv 
+                connection to database.db
             Generates:
-                core table in database.db
+                chain table in database.db
         """
-        # cur.execute(f'CREATE TABLE {self.TB_CORE} ()')
-        # with open(self.EMAIL_ADDR) as file:
-        #     addresses = file.read().splitlines()
-        
-        # cur.executemany(lines)
+        cur = con.cursor()
+        cur.execute(f"SELECT * from {self.TB_EMAIL_LIST}")
+        addresses = cur.fetchall()
+        lines = []
+        for addr in addresses:
+            for subm_id in range(1, len(self.MAX_SUBMISSION) + 1):
+                lines += [(addr, subm_id) + (None, 0) + (None,) * 6 + (None,) * 3]
+        cur.execute(f"CREATE TABLE {self.TB_CHAIN} "+
+        "(author text, subm_id integer, subm_received text, " +
+        "'convo_id (review)' text, reviewer text, review_req_sent text, review_received text, " +
+        "'convo_id (eval)' text, rating integer, comment text, eval_req_sent text, eval_received text"
+        )
+        cur.executemany(f"INSERT INTO '{self.TB_CHAIN}' " + 
+        "(author, subm_id, subm_received, " +
+        "'convo_id (review)', reviewer, review_req_sent, review_received" +
+        "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" + 
+        " values (" + ", ".join(['?'] * 11) + ")", lines)
+        con.commit()
 
 
 #--------------------------------------------------
@@ -125,8 +150,11 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        cur.execute(f'SELECT * FROM {self.TB_EMAIL_LIST} where address = {addr}')
+        print(f"SELECT * FROM '{self.TB_EMAIL_LIST}' where address = '{addr}'")
+        sys.stdout.flush()
+        cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' where address = '{addr}'")
         result = cur.fetchall()
+        print(result)
         con.close()
         return len(result) != 0
    
@@ -159,11 +187,26 @@ class Database:
         """
         raise NotImplementedError
 
+
+    def store_review(self, ):
+        """
+            Provided:
+
+        """
+        raise NotImplementedError
+
+    def store_evaluation(self, ):
+        """
+            Provided:
+
+        """
+        raise NotImplementedError  
+
 #--------------------------------------------------
     def export_table(self, table, filename):
         """
             Provided:
-            table: a string of table name. (e.g. "db_core")
+            table: a string of table name. (e.g. "db_chain")
             filename: a string of filename, where the table in database
                     will be exported to.
 
@@ -174,7 +217,7 @@ class Database:
         try:
             con = sqlite3.connect(self.DATABASE)
             cur = con.cursor()
-            cur.execute(f'SELECT * FROM {table}')
+            cur.execute(f"SELECT * FROM '{table}'")
             result = cur.fetchall()
             with open(filename, 'wb') as file:
                 writer = csv.writer(file)
