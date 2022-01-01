@@ -152,11 +152,8 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        print(f"SELECT * FROM '{self.TB_EMAIL_LIST}' where address = '{addr}'")
-        sys.stdout.flush()
         cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' where address = '{addr}'")
         result = cur.fetchall()
-        print(result)
         con.close()
         return len(result) != 0
    
@@ -175,27 +172,81 @@ class Database:
         """
         raise NotImplementedError
 
-    def store_submission(self, from_, submission_id, msg_id, date):
+    def store_submission(self, from_, subm_id, date):
         """
             Provided:
             from_: a string of an author's email address
-            submission_id: a string of a submission id, e.g. '1', '2', '3'
-            msg_id: a string of email message id for this submission
-            date: The date on receiving this submission
+            submission_id: an integer of a submission id, e.g. 1, 2, 3
+            date: a string of the date on receiving this submission
 
             Return:
             True on successfully storing
             False if it exists already
         """
-        raise NotImplementedError
 
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        cur.execute(f"SELECT subm_received FROM {self.TB_CHAIN} " +\
+            f"WHERE author = '{from_}', subm_id = '{subm_id}'")
+        result = cur.fetchall()
+        if result[0] == None:
+            con.close()
+            return False
+        cur.execute(f"UPDATE {self.TB_CHAIN} SET subm_received = '{date}'" +\
+            f"WHERE author = '{from_}', subm_id = {subm_id}")
+        con.commit()
+        con.close()
 
-    def store_review(self, ):
+    def store_review_req(self, author, subm_id, convo_id, reviewer, date_sent):
         """
             Provided:
-
+            convo_id: initialised when review request was sent
+            reviewer: reviewer to whom it's sent
+            date_sent: a string of date on sending the review
+            
+            Return:
+            True on successfully storing
+            False if it exists already
         """
-        raise NotImplementedError
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        # cur.execute(f"INSERT INTO '{self.TB_CHAIN}' " +\
+        # "(author, subm_id, subm_received, " +\
+        # "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
+        # "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
+        # f" values ({author}, {subm_id}, {}, {}, {}, {})")
+        # cur.execute(f"UPDATE {self.TB_CHAIN} SET 'convo_id (review)' = '{convo_id}', " +\
+        #         f"reviewer = {reviewer}, review_req_sent = {date_sent} " +\
+        #         f"WHERE 'convo_id (review)' = '{convo_id}'")
+        con.commit()
+        con.close()
+        return True
+
+    def store_review(self, convo_id, date_received):
+        """
+            Provided:
+            convo_id: initialised when review request was sent
+            date_received: a string of date on receiving the review
+            
+            Return:
+            True on successfully storing
+            False if it exists already
+        """
+        # "'convo_id (review)' text, reviewer text, " + \
+        #     "review_req_sent text, review_received text, " +\
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        cur.execute(f"SELECT review_received FROM {self.TB_CHAIN} WHERE " +\
+             "'convo_id (review)' = '{convo_id}'")
+        result = cur.fetchall()
+        if result[0] == None:
+            con.close()
+            return False
+        cur.execute(f"UPDATE {self.TB_CHAIN} SET review_received = '{date_received}'" +\
+            f"WHERE 'convo_id (review)' = '{convo_id}'")
+        con.commit()
+        con.close()
+        
 
     def store_evaluation(self, ):
         """
