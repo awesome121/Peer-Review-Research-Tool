@@ -19,7 +19,7 @@ class MailHandler:
         self.access_token_ = None
         
     def login_test(self):
-        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6IkZLaGt1Mk45MmpzUzZwRXFGNGEtblZpRVpqM09OS2pVRjMwRVJBdEt4dXMiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxMDc1NjA5LCJuYmYiOjE2NDEwNzU2MDksImV4cCI6MTY0MTA4MDQwNiwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkUyWmdZTmhvMC90M3pXR05peGZpazg2Ym5wR1hYbEphdS9PSlZuRzduV3pneGJnZnZOOEEiLCJhbXIiOlsicHdkIl0sImFwcF9kaXNwbGF5bmFtZSI6ImJvdCIsImFwcGlkIjoiZGQ4OWJiOTQtMDdmNC00ZTVkLWI2NDEtMTI1ZmM5NmJmZGVlIiwiYXBwaWRhY3IiOiIwIiwiZmFtaWx5X25hbWUiOiJHb25nIiwiZ2l2ZW5fbmFtZSI6IkNoYW5neGluZyIsImlkdHlwIjoidXNlciIsImlwYWRkciI6IjE1MS4yMTAuMTcxLjEwMyIsIm5hbWUiOiJDaGFuZ3hpbmcgR29uZyIsIm9pZCI6IjQ3MmRmMjBlLTk2ZjUtNDdhYS04YjM5LWI5Y2VlYzBkYTgwOSIsIm9ucHJlbV9zaWQiOiJTLTEtNS0yMS05NjYyMDQxNDMtNzQ2OTMyNjkwLTExNTM5NDYyLTI4MTcyMyIsInBsYXRmIjoiMTQiLCJwdWlkIjoiMTAwMzAwMDBBRTRDRkY4RSIsInJoIjoiMC5BVUVBSnhkNDNBNXhWVWk4VEdrQ1pxRzFVWlM3aWQzMEIxMU90a0VTWDhscl9lNUJBRGsuIiwic2NwIjoiSU1BUC5BY2Nlc3NBc1VzZXIuQWxsIE1haWwuUmVhZCBNYWlsLlJlYWRCYXNpYyBNYWlsLlJlYWRXcml0ZSBNYWlsLlNlbmQgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBlbWFpbCIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IkJrZm91OVU4d21nOElvdmRveUpTRjM3Zl83c3ZaZTVtWjZ2LUJ3MzdiNmMiLCJ0ZW5hbnRfcmVnaW9uX3Njb3BlIjoiT0MiLCJ0aWQiOiJkYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEiLCJ1bmlxdWVfbmFtZSI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInVwbiI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInV0aSI6ImFFWmdRUW9nbTBlMDk5Z2FRem5QQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJ4bXNfc3QiOnsic3ViIjoienZVa1UxT2g5LVFxUXBnUTRhejFWZjgwMFVOazVDS2p6UGg5RTZGX0JwMCJ9LCJ4bXNfdGNkdCI6MTM2NjkxMDA5MH0.aAytrDhultJ-uyq9eAQZ8x3Tk0xW_VMwKZbBkLFcsotMH4MKUODRhM4Uv-gQol7pWu2dMBfbJd63ViuQpGJ_Yc1UDI3gJ9FDObwwHNcPrkEmefWQtzqOWxCPPLF1_hij9jIB2ojHN3ehNiGI7V5VMKhycBs1eRcoP4QGhVRoloVbvXZVwLCJ6xpYS2-D8mjNyXL05XN2EHH8MDNyMn9Z_DUQ31EEXSWdczI2iZHsCcetlMbYn0_vGDgO8PdlwbWXwt8Zv9PcrPxxr9PrXWl1SM09C9mdJ2qk_EzSXz8hO2eAD_iulrRc5Gr3zfUgN-P09Fvb6oVX_Aj11A0fFTL-VQ"
+        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6InRQdzVza05BTjgyVDk1WHlLb2pxNTd6cnRQLWlhV1M1eGhSRmNCcE5WWm8iLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxMTU1ODA5LCJuYmYiOjE2NDExNTU4MDksImV4cCI6MTY0MTE2MDkyNywiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhUQUFBQUtvQ0RJQ3hFMkRUa3pYYXFlTE90UnJjR0F1dTdzWENKb29JQTdhWFB0UGs9IiwiYW1yIjpbInB3ZCJdLCJhcHBfZGlzcGxheW5hbWUiOiJib3QiLCJhcHBpZCI6ImRkODliYjk0LTA3ZjQtNGU1ZC1iNjQxLTEyNWZjOTZiZmRlZSIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiR29uZyIsImdpdmVuX25hbWUiOiJDaGFuZ3hpbmciLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNTEuMjEwLjE3MS4xMDMiLCJuYW1lIjoiQ2hhbmd4aW5nIEdvbmciLCJvaWQiOiI0NzJkZjIwZS05NmY1LTQ3YWEtOGIzOS1iOWNlZWMwZGE4MDkiLCJvbnByZW1fc2lkIjoiUy0xLTUtMjEtOTY2MjA0MTQzLTc0NjkzMjY5MC0xMTUzOTQ2Mi0yODE3MjMiLCJwbGF0ZiI6IjE0IiwicHVpZCI6IjEwMDMwMDAwQUU0Q0ZGOEUiLCJyaCI6IjAuQVVFQUp4ZDQzQTV4VlVpOFRHa0NacUcxVVpTN2lkMzBCMTFPdGtFU1g4bHJfZTVCQURrLiIsInNjcCI6IklNQVAuQWNjZXNzQXNVc2VyLkFsbCBNYWlsLlJlYWQgTWFpbC5SZWFkQmFzaWMgTWFpbC5SZWFkV3JpdGUgTWFpbC5TZW5kIG9wZW5pZCBwcm9maWxlIFVzZXIuUmVhZCBVc2VyLlJlYWRCYXNpYy5BbGwgVXNlci5SZWFkV3JpdGUgZW1haWwiLCJzaWduaW5fc3RhdGUiOlsia21zaSJdLCJzdWIiOiJCa2ZvdTlVOHdtZzhJb3Zkb3lKU0YzN2ZfN3N2WmU1bVo2di1CdzM3YjZjIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6Ik9DIiwidGlkIjoiZGM3ODE3MjctNzEwZS00ODU1LWJjNGMtNjkwMjY2YTFiNTUxIiwidW5pcXVlX25hbWUiOiJjZ281NEB1Y2xpdmUuYWMubnoiLCJ1cG4iOiJjZ281NEB1Y2xpdmUuYWMubnoiLCJ1dGkiOiJQSVRhVkpCV2wwS1ZydEhpUDY2bkFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXSwieG1zX3N0Ijp7InN1YiI6Inp2VWtVMU9oOS1RcVFwZ1E0YXoxVmY4MDBVTms1Q0tqelBoOUU2Rl9CcDAifSwieG1zX3RjZHQiOjEzNjY5MTAwOTB9.mjDJrmPmWuFDldBfn8M8zvoghBM2kCbGIJsWWKrb3vkn9GBqmSu0c1OW_gizCHhOYp0xYh9AVSvMyh4JjZ8tpm-vR8qtnt_zzm8mvMEPnWfHcoh4hvXf62IH3Tj6AGXwOG7zkxjcTOfiKfYfiQWNKxyAv_lzdP_WmWG--mriNur_58Qc6DhwEgV7U5fv86H0GH3Yy6aXXLxaxPo5QSqexVRSoHHz_zNjP19-rsrlm6Z3LHSICKbrjG3S8dWlQrjtTT0RNAFsJp78OrLUd6Ljw6mE4Tvh_CnSkcDk0N6QdH73JTdtO9TrDS2go-tg4JQZT1bfbRFbGBksSfJybWtVWQ"
         self.auth_header_ = {'Authorization': 'Bearer ' + self.access_token_}
 
     def login(self):
@@ -54,7 +54,7 @@ class MailHandler:
             print(result.get("correlation_id"))  # You may need this when reporting a bug
 
     def check_inbox(self):
-        """Return a list of unread mails in inbox"""
+        """Return a list of unread mails in JSON format from inbox"""
         response = requests.get(self.config_['inbox'], headers=self.auth_header_).json()
         if 'error' in response:
             print(response)
@@ -87,6 +87,7 @@ class MailHandler:
                 if self.db_.store_subm(convo_id, from_, \
                                           self.parser_.get_subm_id(subject), date):
                     self.reply_subm(msg_id, mail, True)
+                    print(mail)
                 else:
                     self.reply_subm(msg_id, mail, False)
             elif self.parser_.is_review(subject):
@@ -94,7 +95,7 @@ class MailHandler:
                 # self.send_eval_req()
             elif self.parser_.is_eval(subject):
                 rating, comment = self.parser_.get_eval(mail)
-                self.store_eval(convo_id, rating, comment, date)
+                self.db_.store_eval(convo_id, rating, comment, date)
                 # raise NotImplementedError
             else: # subscriber but invalid subject
                 # self.send_usage_instruction()
@@ -122,7 +123,7 @@ class MailHandler:
 
         """
         comment = message_temp.SUBMISSION_SUCCESS if is_success \
-                else message_temp.SUBMISSION_FAILURE
+                else message_temp.REVIEW_REQUEST
         data = {
             "message":{  
                 "toRecipients":[ mail['from'] ]

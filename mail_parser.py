@@ -10,6 +10,8 @@
     Original author -> Agent      Subject: "Re: evaluation-Request"
 """
 
+from html.parser import HTMLParser
+
 class MailParser:
     """
         MailParser class, this class is used to get and analyse basic mail subjects.
@@ -62,6 +64,15 @@ class MailParser:
             Provided:
                 an mail object in JSON form
             Return:
-                rating: a single integer, 1-7
-                comment: a string of comment in HTML form
+                rating: a single integer 1-7 inclusive on success
+                        -1 on failure.
+                comment: a string of comment, '' string on failure
         """
+        body = mail['body']['content'].lower()
+        pos = body.find('rating-')
+        if pos != -1 and body[pos + len('rating-')].isdigit():
+            rating = int(body[pos + len('rating-')])
+            if rating in range(1, 8):
+                return rating, ''
+        return -1, ''
+        

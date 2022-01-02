@@ -278,7 +278,7 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        result = cur.execute(f"SELECT eval_received FROM {self.TB_CHAIN} WHERE " +\
+        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
                             f"'convo_id (eval)' = '{eval_convo_id}'")\
                     .fetchone()
         if result['eval_received'] is not None: # eval_received exists
@@ -288,6 +288,12 @@ class Database:
         cur.execute(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = {comment}, "+\
             f"eval_received = '{date_received}'" +\
             f"WHERE 'convo_id (review)' = '{eval_convo_id}'")
+        print(eval_convo_id)
+
+        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
+                            f"'convo_id (eval)' = '{eval_convo_id}'")\
+                    .fetchone()
+        print(result)
         con.commit()
         con.close()
         return True
