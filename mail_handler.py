@@ -19,7 +19,11 @@ class MailHandler:
         self.access_token_ = None
         
     def login_test(self):
+<<<<<<< HEAD
         self.access_token_ = 'eyJ0eXAiOiJKV1QiLCJub25jZSI6IlJJRG9tMjdBOEZaM2J1S090M0VhN1hrQ19QTHhFQ3dKeHRYTW5mWFp2ZmsiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxMTc4MDYyLCJuYmYiOjE2NDExNzgwNjIsImV4cCI6MTY0MTE4MzM2NywiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkUyWmdZTEFVTjIzc2Vpb2FzREQ4c1lqL2hVL2M0cnM5NWxSMjNuMzUzZTdjcjNpeitVVUEiLCJhbXIiOlsicHdkIl0sImFwcF9kaXNwbGF5bmFtZSI6ImJvdCIsImFwcGlkIjoiZGQ4OWJiOTQtMDdmNC00ZTVkLWI2NDEtMTI1ZmM5NmJmZGVlIiwiYXBwaWRhY3IiOiIwIiwiZmFtaWx5X25hbWUiOiJMaWFuZyIsImdpdmVuX25hbWUiOiJKdW53ZWkiLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIyMDMuMjExLjcyLjE0OCIsIm5hbWUiOiJKdW53ZWkgTGlhbmciLCJvaWQiOiIyMzAzMjZiZS1jODUxLTQxYjUtODY5MS03MGZlNGE1MjQ1ZGUiLCJvbnByZW1fc2lkIjoiUy0xLTUtMjEtOTY2MjA0MTQzLTc0NjkzMjY5MC0xMTUzOTQ2Mi0yOTY2MTUiLCJwbGF0ZiI6IjE0IiwicHVpZCI6IjEwMDMyMDAwNEM0NTlDQjYiLCJyaCI6IjAuQVVFQUp4ZDQzQTV4VlVpOFRHa0NacUcxVVpTN2lkMzBCMTFPdGtFU1g4bHJfZTVCQUo4LiIsInNjcCI6IklNQVAuQWNjZXNzQXNVc2VyLkFsbCBNYWlsLlJlYWQgTWFpbC5SZWFkQmFzaWMgTWFpbC5SZWFkV3JpdGUgTWFpbC5TZW5kIG9wZW5pZCBwcm9maWxlIFVzZXIuUmVhZCBVc2VyLlJlYWRCYXNpYy5BbGwgVXNlci5SZWFkV3JpdGUgZW1haWwiLCJzaWduaW5fc3RhdGUiOlsia21zaSJdLCJzdWIiOiJtZVdBODU5Zk5mQ2FodXNlRGtHTHJUMDN4NWlodlNtY1JRcmpucFdzUHhzIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6Ik9DIiwidGlkIjoiZGM3ODE3MjctNzEwZS00ODU1LWJjNGMtNjkwMjY2YTFiNTUxIiwidW5pcXVlX25hbWUiOiJqbGkzMjhAdWNsaXZlLmFjLm56IiwidXBuIjoiamxpMzI4QHVjbGl2ZS5hYy5ueiIsInV0aSI6ImFoSVVsU0lMdUVTN3BzTDJJbEhrQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJ4bXNfc3QiOnsic3ViIjoiTkpzX2ZVYnhOZUgzSm1XZERUb3RWNmJaSnRzalRHbzdHRE1BOTZBaFl0ZyJ9LCJ4bXNfdGNkdCI6MTM2NjkxMDA5MH0.o3k31UHdGTznOq-8rq9tQtLBLxokW-1pNBi21A-mcOCcjNKKU6THJXqZOHLWbRoAmcWqnWOIc5YQP9iqwlXzLZ53GA2XYtgSrPOGQJL7Jpuh3Zs3fAj3IgliJurqCEz13-XflUff00ZeV2fdA0M3KjP2fNtn7YybC5r6haVyxQcJXBBC6C--bTUTX9PNQ4F4t8gBt5OqCw0DZJ8EjMerlzbSnEbOhuyx7nNZ4cfjmeW5g1sIz-VU5nib951u31X4qsimBlf2VntoZcL9QXE4hY0O0ZQJIGt4u7E479Qr73j28qDA4lFIf1vMBOhBhh3ImnvDgwnCsCmtw_ckuXjR5w' # test
+=======
+        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6Ijc5UEJzbVBBVTNEbXBBeVZyNnpnb0l4QzJIN1BfSXUtTjFIRXhlRTc3dG8iLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxMTcyMTYxLCJuYmYiOjE2NDExNzIxNjEsImV4cCI6MTY0MTE3NjIxMiwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhUQUFBQTdUOGRtVCtKVXgyMVVkaUgrTGZDbU9vZzcxWXo4aVNXbGZUdXo3R2I1YVk9IiwiYW1yIjpbInB3ZCJdLCJhcHBfZGlzcGxheW5hbWUiOiJib3QiLCJhcHBpZCI6ImRkODliYjk0LTA3ZjQtNGU1ZC1iNjQxLTEyNWZjOTZiZmRlZSIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiR29uZyIsImdpdmVuX25hbWUiOiJDaGFuZ3hpbmciLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNTEuMjEwLjE3MS4xMDMiLCJuYW1lIjoiQ2hhbmd4aW5nIEdvbmciLCJvaWQiOiI0NzJkZjIwZS05NmY1LTQ3YWEtOGIzOS1iOWNlZWMwZGE4MDkiLCJvbnByZW1fc2lkIjoiUy0xLTUtMjEtOTY2MjA0MTQzLTc0NjkzMjY5MC0xMTUzOTQ2Mi0yODE3MjMiLCJwbGF0ZiI6IjE0IiwicHVpZCI6IjEwMDMwMDAwQUU0Q0ZGOEUiLCJyaCI6IjAuQVVFQUp4ZDQzQTV4VlVpOFRHa0NacUcxVVpTN2lkMzBCMTFPdGtFU1g4bHJfZTVCQURrLiIsInNjcCI6IklNQVAuQWNjZXNzQXNVc2VyLkFsbCBNYWlsLlJlYWQgTWFpbC5SZWFkQmFzaWMgTWFpbC5SZWFkV3JpdGUgTWFpbC5TZW5kIG9wZW5pZCBwcm9maWxlIFVzZXIuUmVhZCBVc2VyLlJlYWRCYXNpYy5BbGwgVXNlci5SZWFkV3JpdGUgZW1haWwiLCJzaWduaW5fc3RhdGUiOlsia21zaSJdLCJzdWIiOiJCa2ZvdTlVOHdtZzhJb3Zkb3lKU0YzN2ZfN3N2WmU1bVo2di1CdzM3YjZjIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6Ik9DIiwidGlkIjoiZGM3ODE3MjctNzEwZS00ODU1LWJjNGMtNjkwMjY2YTFiNTUxIiwidW5pcXVlX25hbWUiOiJjZ281NEB1Y2xpdmUuYWMubnoiLCJ1cG4iOiJjZ281NEB1Y2xpdmUuYWMubnoiLCJ1dGkiOiJOQ2JVdDJnMWdVQzA5Z2tvdGVQaEFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXSwieG1zX3N0Ijp7InN1YiI6Inp2VWtVMU9oOS1RcVFwZ1E0YXoxVmY4MDBVTms1Q0tqelBoOUU2Rl9CcDAifSwieG1zX3RjZHQiOjEzNjY5MTAwOTB9.NTzdnMYhaK64fBsc9UawjQZzPDgHm9T9pz_GLdzOkDTLLlZvyFzHX5040gA4fEvRMvCsmHhVMacXohjAENvvt7mCC7oK2UajO6o0GnvUw0L6OmtwrsU6_XEWgq-s8IcTVmb4TUDOjX3zwDuNVUvAResYl0c9KRtK02VDwpn8mWMmRdECoUfq6FdeYI-ubeJvanvKFEo4nHV6pMkNfynLK69HbF5ZgXnEtprQiG6P5nIFuNPdHzVP-l3q9KemWePMjIvICQ6yw5q5GC3ZxmAsrIFddh8okkc6Q2ovAsVNULcuvxaADemBYxZDSRI6SsE28kxImaz23P6rYgubQ6ghcA"
+>>>>>>> main
         self.auth_header_ = {'Authorization': 'Bearer ' + self.access_token_}
 
     def login(self):
@@ -54,7 +58,7 @@ class MailHandler:
             print(result.get("correlation_id"))  # You may need this when reporting a bug
 
     def check_inbox(self):
-        """Return a list of unread mails in inbox"""
+        """Return a list of unread mails in JSON format from inbox"""
         response = requests.get(self.config_['inbox'], headers=self.auth_header_).json()
         if 'error' in response:
             print(response)
@@ -79,22 +83,30 @@ class MailHandler:
 
         """
         for mail in mails:
-            msg_id, subject, from_ = self.parser_.parse_mail(mail)
+            msg_id, convo_id, subject, from_, date = self.parser_.parse_mail(mail)
             self.mark_as_read(msg_id)
             if not self.db_.is_subscriber(from_):
                 pass #ignore non-subscriber
-            elif self.parser_.is_submission(subject):
-                # db_.store_submission(from_, submission_id, date)
-                self.send_submission_success(msg_id, mail)
+            elif self.parser_.is_subm(subject):
+                if self.db_.store_subm(convo_id, from_, \
+                                          self.parser_.get_subm_id(subject), date):
+                    self.reply_subm(msg_id, mail, True)
+                else:
+                    self.reply_subm(msg_id, mail, False)
+                #test
+                reviewer = 'changxing.gong@gmail.com'
+                self.send_req(self.parser_.get_review_req(), mail, reviewer)
+                # self.db_.store_review_req(reviewer)
             elif self.parser_.is_review(subject):
-                print(mail)
-                # db_.store_review()
-                # self.send_evaluation_request()
-            elif self.parser_.is_evaluation(subject):
-                self.store_evaluation()
+                self.db_.store_review(convo_id, date)
+                self.send_req(self.parser_.get_eval_req(), mail, 'changxing.gong@gmail.com')
+                # self.db_.store_eval_req()
+            elif self.parser_.is_eval(subject):
+                rating, comment = self.parser_.get_eval(mail)
+                self.db_.store_eval(convo_id, rating, comment, date)
             else: # subscriber but invalid subject
                 # self.send_usage_instruction()
-                raise NotImplementedError
+                print(subject)
 
     def mark_as_read(self, msg_id):
         """
@@ -111,43 +123,57 @@ class MailHandler:
             print('Error: mark_as_read')
             exit(1)
 
-    def send_submission_success(self, msg_id, mail):
+    def reply_subm(self, msg_id, mail, is_success):
         """
             Provided:
 
         """
+        comment = message_temp.SUBMISSION_SUCCESS if is_success \
+                else message_temp.SUBMISSION_FAILURE
         data = {
             "message":{  
                 "toRecipients":[ mail['from'] ]
             },
-            "comment": message_temp.SUBMISSION_SUCCESS
+            "comment": comment
         }
-
         # data is required to dumped into json format, 'Content-Type' header is required
-        response = requests.post(self.config_['reply_msg'].format(msg_id), json.dumps(data), \
+        response = requests.post(self.config_['reply_subm'].format(msg_id), json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
-        print(response.status_code)
+        # print(response.status_code)
         # print(response.json())
         if 'error' in response:
             print(response)
-            print('Error: send_submission_success')
+            print('Error: reply_subm')
             exit(1)
 
+    def send_req(self, subject, mail, dest):
+        content = mail['body']['content']
+        
+        prompt = message_temp.REVIEW_REQUEST_PROMPT if subject.lower() == 'review-request' \
+                    else message_temp.EVAL_REQUEST_PROMPT
+        data = {
+            "message": {
+                "subject": subject,
+                "body": {
+                "contentType": "HTML",
+                "content": f"{prompt + content}"
+                },
+                "toRecipients": [{
+                    "emailAddress": {
+                    "address": f"{dest}"
+                    }
+                }],
+            }
+        }
+        if mail['hasAttachments']:
+            data['attachments'] = self.get_attachments(mail['id'])
+        response = requests.post(self.config_['send_mail'], json.dumps(data), \
+            headers=self.auth_header_ | {'Content-Type': 'application/json'})
+        if 'error' in response:
+            print(response)
+            print('Error: send_req')
+            exit(1)
 
-
-    def send_review_request(self):
-        """
-            Provided:
-
-        """
-        raise NotImplementedError
-
-    def send_evaluation_request(self):
-        """
-            Provided:
-
-        """
-        raise NotImplementedError
 
     def send_usage_instruction(self):
         """
@@ -162,3 +188,12 @@ class MailHandler:
 
         """
         raise NotImplementedError
+
+    def get_attachments(self, msg_id):
+        response = requests.get(self.config_['get_attachments'].format(msg_id), \
+                    headers=self.auth_header_).json()
+        if 'error' in response:
+            print(response)
+            print('Error: get_attachments')
+            exit(1)
+        return response['value']
