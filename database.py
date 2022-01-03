@@ -165,19 +165,16 @@ class Database:
         reviewers = []
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        # Reviewers who have lowest number of work will have highest priority
+        # Reviewer who has lowest number of work will have highest priority
         # number = 0
-        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3")
-        reviewers += cur.fetchall()
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
         # number = 1
-        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3")
-        reviewers += cur.fetchall()
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
         # number = 2
-        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3")
-        reviewers += cur.fetchall()
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
         if len(reviewers) > 3:
             reviewers = reviewers[0:3]
         cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
