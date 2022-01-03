@@ -13,8 +13,8 @@
 class MailParser:
     """
         MailParser class, this class is used to get and analyse basic mail subjects.
-        Subject is valid only if it satisfies certain formats, please see example 
-        sabove.
+        Subject is valid only if it satisfies certain formats, please see examples
+        above.
     """
     def __init__(self):
         pass

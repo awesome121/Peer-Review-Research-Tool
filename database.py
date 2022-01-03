@@ -152,7 +152,7 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' where address = '{addr}'")
+        cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' WHERE address = '{addr}'")
         result = cur.fetchall()
         con.close()
         return len(result) != 0
@@ -170,7 +170,29 @@ class Database:
             Return:
             a list of reviewers' email addresses
         """
-        raise NotImplementedError
+        reviewers = []
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        # Reviewers who have lowest number of work will have highest priority
+        # number = 0
+        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3")
+        reviewers += cur.fetchall()
+        # number = 1
+        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3")
+        reviewers += cur.fetchall()
+        # number = 2
+        cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3")
+        reviewers += cur.fetchall()
+        if len(reviewers) > 3:
+            reviewers = reviewers[0:3]
+        cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
+        con.commit()
+        con.close()
+        return reviewers
+        #raise NotImplementedError
 
     def store_submission(self, from_, subm_id, date):
         """
@@ -253,7 +275,21 @@ class Database:
             Provided:
 
         """
-        raise NotImplementedError  
+        raise NotImplementedError
+
+
+#--------------------------------------------------
+    def view_table_information(self, table_name):
+        """
+            A function used to view table's information
+        
+        """
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        cur.execute(f"SELECT * FROM {table_name}")
+        result = cur.fetchall()
+        con.close()
+        return result
 
 #--------------------------------------------------
     def export_table(self, table, filename):
