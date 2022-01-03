@@ -13,7 +13,7 @@ SUBMISSION_FAILURE = \
 <p><br></p>
 <p>Kind Regards,<br>Dropbox of Product Design</p>"""
 
-REVIEW_REQUEST = \
+REVIEW_REQUEST_PROMPT = \
 """<p style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);"><strong><em><span style="font-size: 10px; font-family: Arial, Helvetica, sans-serif;">------------------------------<wbr>------------------</span></em></strong></p>
 <p style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);"><span style="font-size: 10px; font-family: Arial, Helvetica, sans-serif;"><strong><em>------------------------------<wbr>------------------</em></strong></span><span style="font-family: Arial, Helvetica, sans-serif;"><br></span></p>
 <div style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);">
@@ -35,9 +35,9 @@ REVIEW_REQUEST = \
             <p><span style="font-size: 10px;"><strong><em><span style="font-weight: 700; font-family: Arial, Helvetica, sans-serif; font-size: 10px;"><em>------------------------------<wbr>------------------</em></span></em></strong></span></p>
         </div>
     </div>
-</div>"""
+</div><br><br><br>"""
 
-RATING_REQUEST = \
+EVAL_REQUEST_PROMPT = \
 """<p style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);"><strong><em><span style="font-size: 10px;">------------------------------<wbr>------------------</span></em></strong></p>
 <p style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);"><span style="font-size: 10px;"><strong><em>------------------------------<wbr>------------------</em></strong></span></p>
 <div style="font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; background-color: rgb(255, 255, 255);">
@@ -47,4 +47,7 @@ RATING_REQUEST = \
             <p><span style="font-size: 10px;"><strong><em><span style="font-weight: 700; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px;"><em>------------------------------<wbr>------------------</em></span></em></strong></span></p>
         </div>
     </div>
-</div>"""
+</div><br><br><br>"""
+
+
+

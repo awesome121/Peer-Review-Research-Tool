@@ -7,7 +7,8 @@
     "inbox_unread_msg": "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?$filter=isread eq false&%top=10&$orderby=receivedDateTime",
     
     "msg" : "https://graph.microsoft.com/v1.0/me/messages/{}",
-    "reply_msg" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply"
-
+    "reply_subm" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply",
+    "send_mail" : "https://graph.microsoft.com/v1.0/me/sendMail",
+    "get_attachments" : "https://graph.microsoft.com/v1.0/me/messages/{}/attachments"
    
 }

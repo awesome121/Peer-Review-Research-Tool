@@ -230,7 +230,7 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        result = cur.execute(f"SELECT review_received FROM {self.TB_CHAIN} WHERE " +\
+        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
                         f"'convo_id (review)' = '{review_convo_id}'")\
                     .fetchone()
         if result['review_received'] is not None: # review_received exists
@@ -285,16 +285,19 @@ class Database:
             con.commit()
             con.close()
             return False
-        cur.execute(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = {comment}, "+\
-            f"eval_received = '{date_received}'" +\
-            f"WHERE 'convo_id (review)' = '{eval_convo_id}'")
+        print(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', "+\
+            f"eval_received = '{date_received}' " +\
+            f"WHERE 'convo_id (eval)' = '{eval_convo_id}'")
+        cur.execute(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', "+\
+            f"eval_received = '{date_received}' " +\
+            f"WHERE 'convo_id (eval)' = '{eval_convo_id}'")
         print(eval_convo_id)
-
+        con.commit()
         result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
                             f"'convo_id (eval)' = '{eval_convo_id}'")\
                     .fetchone()
         print(result)
-        con.commit()
+        
         con.close()
         return True
         
