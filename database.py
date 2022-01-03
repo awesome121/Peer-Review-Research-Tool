@@ -153,16 +153,32 @@ class Database:
         """
             Provided:
             a string of an author's email address
-
             draw three reviewers (except this auther),
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
             reviews in num_review.db.
-
             Return:
             a list of reviewers' email addresses
         """
-        raise NotImplementedError
+        reviewers = []
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        # Reviewer who has lowest number of work will have highest priority
+        # number = 0
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
+        # number = 1
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
+        # number = 2
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
+        if len(reviewers) > 3:
+            reviewers = reviewers[0:3]
+        cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
+        con.commit()
+        con.close()
+        return reviewers
 
     def store_subm(self, subm_convo_id, author, subm_id, date):
         """
@@ -301,6 +317,20 @@ class Database:
         con.close()
         return True
         
+        
+#--------------------------------------------------
+    def view_table_information(self, table_name):
+        """
+            A function used to view table's information
+        
+        """
+        con = sqlite3.connect(self.DATABASE)
+        cur = con.cursor()
+        cur.execute(f"SELECT * FROM {table_name}")
+        result = cur.fetchall()
+        con.close()
+        return 
+
 
 #--------------------------------------------------
     def export_table(self, table, filename):
