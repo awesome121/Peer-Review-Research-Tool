@@ -3,6 +3,7 @@
     "client_id": "dd89bb94-07f4-4e5d-b641-125fc96bfdee",
     "scope": ["User.ReadBasic.All", "User.Read", "User.ReadWrite", "Mail.Read", "Mail.ReadWrite", "Mail.Send", "Mail.ReadBasic", "IMAP.AccessAsUser.All"],
 
+    "last_sent_msg" : "https://graph.microsoft.com/v1.0/me/mailFolders/sentItems/messages?&%top=1&$orderby=sentDateTime desc",
     "inbox" : "https://graph.microsoft.com/v1.0/me/mailFolders/Inbox",
     "inbox_unread_msg": "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?$filter=isread eq false&%top=10&$orderby=receivedDateTime",
     
