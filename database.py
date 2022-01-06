@@ -91,7 +91,7 @@ class Database:
         cur.execute(f"CREATE TABLE '{self.TB_DEADLINE}' (subm_id integer, date text)")
         with open(self.DEADLINE, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
-        lines = [(line,) for line in lines]
+        lines = [(line, '') for line in lines]
         cur.executemany(f"INSERT INTO '{self.TB_DEADLINE}' (subm_id, date) values (?, ?)"\
                         , lines)
         con.commit()
@@ -192,6 +192,8 @@ class Database:
             True on successfully storing
             False if it exists already
         """
+        
+        print('store_subm, subm convo id:', subm_convo_id)
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
         print(f"SELECT * FROM {self.TB_CHAIN} " +\
@@ -203,7 +205,7 @@ class Database:
             con.commit()
             con.close()
             return False
-        cur.execute(f"INSERT INTO '{self.TB_CHAIN}' " +\
+        cur.execute(f"INSERT INTO {self.TB_CHAIN} " +\
         "('convo_id (subm)', author, subm_id, subm_received, " +\
         "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
         "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
@@ -211,6 +213,7 @@ class Database:
             (subm_convo_id, author, subm_id, date))
         con.commit()
         con.close()
+        self.view_table_information('chain')
         return True
 
     def store_review_req(self, subm_convo_id, review_convo_id, reviewer, date_sent):
@@ -218,20 +221,24 @@ class Database:
             Provided:
             subm_convo_id: submission conversation id
             review_convo_id: initialised when review request was sent
-            reviewer: reviewer to whom it's sent
+            reviewer: a string of reviewer's email address to whom it's sent
             date_sent: a string of date on sending the review request
             
             Return:
             True on successfully storing
             False otherwise
         """
+        print('store_review_req, subm convo id:', subm_convo_id)
+        print('store_review_req, review convo id:', review_convo_id)
+        self.view_table_information('chain')
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        cur.execute(f"UPDATE {self.TB_CHAIN} SET 'convo_id (review)' = '{review_convo_id}', " +\
-                f"reviewer = {reviewer}, review_req_sent = {date_sent} " +\
-                f"WHERE 'convo_id (subm)' = '{subm_convo_id}'")
+        cur.execute(f""" UPDATE {self.TB_CHAIN} SET "convo_id (review)" = '{review_convo_id}', """ +\
+                f""" reviewer = '{reviewer}', review_req_sent = '{date_sent}' """ +\
+                f""" WHERE "convo_id (subm)" = '{subm_convo_id}' """)
         con.commit()
         con.close()
+        self.view_table_information('chain')
         return True
 
     def store_review(self, review_convo_id, date_received):
@@ -244,26 +251,29 @@ class Database:
             True on successfully storing
             False if it exists already
         """
+        print('store_review, review convo id:', review_convo_id)
         con = sqlite3.connect(self.DATABASE)
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
-                        f"'convo_id (review)' = '{review_convo_id}'")\
+        result = cur.execute(f""" SELECT * FROM {self.TB_CHAIN} WHERE """ +\
+                        f""" "convo_id (review)" = '{review_convo_id}' """)\
                     .fetchone()
         if result['review_received'] is not None: # review_received exists
             con.commit()
             con.close()
             return False
-        cur.execute(f"UPDATE {self.TB_CHAIN} SET review_received = '{date_received}'" +\
-            f"WHERE 'convo_id (review)' = '{review_convo_id}'")
+        cur.execute(f""" UPDATE {self.TB_CHAIN} SET review_received = '{date_received}' """ +\
+            f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
+        self.view_table_information('chain')
         return True
         
 
-    def store_eval_req(self, subm_convo_id, eval_convo_id, date_sent):
+    def store_eval_req(self, review_convo_id, eval_convo_id, date_sent):
         """
             Provided:
-            subm_convo_id: submission conversation id
+            review_convo_id: submission conversation id
             eval_convo_id: evaluation conversation id
             date_sent: a string of date on sending the evaluation request
             
@@ -271,13 +281,16 @@ class Database:
             True on successfully storing
             False otherwise
         """
+        print('store_eval_req, review convo id:', review_convo_id)
+        print('store_eval_req, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
-        cur.execute(f"UPDATE {self.TB_CHAIN} SET 'eval_req_sent' = '{date_sent}', " +\
-                f"'convo_id (eval)' = {eval_convo_id} " +\
-                f"WHERE 'convo_id (subm)' = '{subm_convo_id}'")
+        cur.execute(f""" UPDATE {self.TB_CHAIN} SET "eval_req_sent" = '{date_sent}', """ +\
+                f""" "convo_id (eval)" = '{eval_convo_id}' """ +\
+                f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
+        self.view_table_information('chain')
         return True
 
     def store_eval(self, eval_convo_id, rating, comment, date_received):
@@ -292,30 +305,40 @@ class Database:
             True on successfully storing
             False if it exists already
         """
+        print('store_eval, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE)
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
         result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
-                            f"'convo_id (eval)' = '{eval_convo_id}'")\
+                            f""" "convo_id (eval)" = '{eval_convo_id}' """)\
                     .fetchone()
         if result['eval_received'] is not None: # eval_received exists
             con.commit()
             con.close()
             return False
-        print(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', "+\
+        cur.execute(f""" UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', """+\
             f"eval_received = '{date_received}' " +\
-            f"WHERE 'convo_id (eval)' = '{eval_convo_id}'")
-        cur.execute(f"UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', "+\
-            f"eval_received = '{date_received}' " +\
-            f"WHERE 'convo_id (eval)' = '{eval_convo_id}'")
-        print(eval_convo_id)
+            f""" WHERE "convo_id (eval)" = '{eval_convo_id}' """)
         con.commit()
-        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
-                            f"'convo_id (eval)' = '{eval_convo_id}'")\
-                    .fetchone()
-        print(result)
         
         con.close()
+        self.view_table_information('chain')
         return True
+
+    def find_author_by_convo_id(self, review_convo_id):
+        """
+            Provided:
+                eval_convo_id: initialised when evaluation request was sent
+            Return:
+                author: a string of an author's email address
+        """
+        con = sqlite3.connect(self.DATABASE)
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+        author = cur.execute(f"SELECT author FROM {self.TB_CHAIN} WHERE " +\
+                            f""" "convo_id (review)" = '{review_convo_id}' """)\
+                    .fetchone()['author']
+        return author
         
         
 #--------------------------------------------------
@@ -328,6 +351,7 @@ class Database:
         cur = con.cursor()
         cur.execute(f"SELECT * FROM {table_name}")
         result = cur.fetchall()
+        print(result)
         con.close()
         return 
 
