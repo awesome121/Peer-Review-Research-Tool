@@ -1,6 +1,6 @@
 {
     "tenant_id": "https://login.microsoftonline.com/dc781727-710e-4855-bc4c-690266a1b551",
-    "client_id": "c07150d9-4ea3-447e-8432-6fe2ca64c8b5",
+    "client_id": "dd89bb94-07f4-4e5d-b641-125fc96bfdee",
     "scope": ["User.ReadBasic.All", "User.Read", "User.ReadWrite", "Mail.Read", "Mail.ReadWrite", "Mail.Send", "Mail.ReadBasic", "IMAP.AccessAsUser.All"],
 
     "last_sent_msg" : "https://graph.microsoft.com/v1.0/me/mailFolders/sentItems/messages?&%top=1&$orderby=sentDateTime desc",
