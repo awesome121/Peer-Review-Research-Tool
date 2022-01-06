@@ -14,7 +14,7 @@
 """
 
 
-import csv, sqlite3, sys
+import csv, sqlite3, sys, os
 
 class Database:
     """
@@ -92,7 +92,8 @@ class Database:
         cur.execute(f"CREATE TABLE '{self.TB_DEADLINE}' (subm_id integer, date text)")
         with open(self.DEADLINE, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
-        lines = [(line, '') for line in lines]
+        lines = [tuple(line.split(',')) for line in lines]
+        print(lines)
         cur.executemany(f"INSERT INTO '{self.TB_DEADLINE}' (subm_id, date) values (?, ?)"\
                         , lines)
         con.commit()
@@ -134,6 +135,22 @@ class Database:
             "eval_req_sent text, eval_received text)")
         con.commit()
 
+    def monitor_deadline(self):
+        """
+            Provided:
+                connection to database.db
+            Generates:
+                a new fresh updated deadline table
+        """
+        if os.path.getmtime(self.DEADLINE) != self.DEADLINE_LST_MODIFIED_DATE:
+            con = sqlite3.connect(self.DATABASE)
+            cur = con.cursor()
+            cur.execute(f"DROP TABLE {self.TB_DEADLINE}")
+            con.commit()
+            self.init_deadline(con)
+            con.close()
+            self.DEADLINE_LST_MODIFIED_DATE = os.path.getmtime(self.DEADLINE)
+            
 
 #--------------------------------------------------
 
