@@ -58,6 +58,7 @@ class MailHandler:
             result = self.app.acquire_token_by_device_flow(flow)
             print(result['access_token'])
         if "access_token" in result:
+            print(result['access_token'])
             self.access_token_ = result['access_token']
             self.auth_header_ = {'Authorization': 'Bearer ' + result['access_token']}
         else:
