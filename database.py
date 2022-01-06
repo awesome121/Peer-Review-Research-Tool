@@ -18,7 +18,7 @@ import csv, sqlite3, sys
 
 class Database:
     """
-        Database class, this class is expected to run continously for weeks
+        Database class, this class is expected to run continously for weeks.
         This class handles internal database tables using sqlite3, it interacts
         with Mailhandler class.
     """
