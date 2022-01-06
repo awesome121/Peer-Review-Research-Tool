@@ -39,6 +39,7 @@ class Database:
         # Database constants:
         self.MAX_SUBMISSION = 6
         self.NUM_REVIEW_REQUEST = 3
+        self.DEADLINE_LST_MODIFIED_DATE = 0
         
 #--------------------------------------------------
     def create_database(self):
