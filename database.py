@@ -93,7 +93,6 @@ class Database:
         with open(self.DEADLINE, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
         lines = [tuple(line.split(',')) for line in lines]
-        print(lines)
         cur.executemany(f"INSERT INTO '{self.TB_DEADLINE}' (subm_id, date) values (?, ?)"\
                         , lines)
         con.commit()
