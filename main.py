@@ -14,5 +14,5 @@ mail_handler.login()
 while True:
     mails = mail_handler.check_inbox()
     mail_handler.process_unread(mails)
-    db.monitor_deadline()
+    db.monitor_schedule()
     time.sleep(1)

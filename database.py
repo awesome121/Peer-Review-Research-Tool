@@ -1,14 +1,14 @@
 """
     Provided (with header, see example):
     email_list.csv          format: email_list
-    deadline.csv            format: submission_id, date
+    schedule.csv            format: submission_id, date
 
     Generated:
     database.db
     
     Tables in database.db:
     email_list
-    deadline
+    schedule
     num_review
     chain
 """
@@ -28,35 +28,36 @@ class Database:
         """
         # Provided files:
         self.EMAIL_LIST = "email_list.csv"
-        self.DEADLINE = "deadline.csv"
+        self.SCHEDULE = "schedule.csv"
         # Database generated file:
         self.DATABASE = "database.db"
         # tables
         self.TB_EMAIL_LIST = "email_list"
-        self.TB_DEADLINE = "deadline"
+        self.TB_SCHEDULE = "schedule"
         self.TB_NUM_REVIEW = "num_review"
         self.TB_CHAIN = "chain"
         # Database constants:
         self.MAX_SUBMISSION = 6
         self.NUM_REVIEW_REQUEST = 3
-        self.DEADLINE_LST_MODIFIED_DATE = 0
+        self.SCHEDULE_LST_MODIFIED_DATE = 0
         
 #--------------------------------------------------
     def create_database(self):
         """ 
             ===This function can be called only on initialising database===
             This function further calls subsequent functions init_email_list, 
-            init_deadline, init_num_review, init_chain to initialise tables
-            email_list, deadline, num_review, and chain respectively.
+            init_schedule, init_num_review, init_chain to initialise tables
+            email_list, schedule, num_review, and chain respectively.
         
             email_list: email address of subscribers
-            deadline: submission ID, date
+            schedule: subm_id, start_date, end_date (subm), is_distributed, 
+                      end_date (review), end_date (eval)
             num_review: currently number of received distribution for each submission 
             chain: a joined table
         """
         con = sqlite3.connect(self.DATABASE)
         self.init_email_list(con)
-        self.init_deadline(con)
+        self.init_schedule(con)
         self.init_num_review(con)
         self.init_chain(con)
         con.close()
@@ -79,22 +80,25 @@ class Database:
         cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
         con.commit()
 
-    def init_deadline(self, con):
+    def init_schedule(self, con):
         """
             ===This function can be called only on initialising database===
             Provided:
                 connection to database.db
-                deadline.csv
+                schedule.csv
             Generates:
-                deadline table in database.db
+                schedule table in database.db
         """
         cur = con.cursor()
-        cur.execute(f"CREATE TABLE '{self.TB_DEADLINE}' (subm_id integer, date text)")
-        with open(self.DEADLINE, encoding='utf-8-sig') as file:
+        cur.execute(f"CREATE TABLE '{self.TB_SCHEDULE}' (subm_id integer, " +\
+            "start_date text, 'end_date (subm)' text, is_distributed integer, " +\
+            "'end_date (review)' text, 'end_date (eval)' text)")
+        with open(self.SCHEDULE, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
         lines = [tuple(line.split(',')) for line in lines]
-        cur.executemany(f"INSERT INTO '{self.TB_DEADLINE}' (subm_id, date) values (?, ?)"\
-                        , lines)
+        cur.executemany(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
+                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", lines)
         con.commit()
 
     def init_num_review(self, con):
@@ -134,24 +138,24 @@ class Database:
             "eval_req_sent text, eval_received text)")
         con.commit()
 
-    def monitor_deadline(self):
-        """
-            Provided:
-                connection to database.db
-            Generates:
-                a new fresh updated deadline table
-        """
-        if os.path.getmtime(self.DEADLINE) != self.DEADLINE_LST_MODIFIED_DATE:
-            con = sqlite3.connect(self.DATABASE)
-            cur = con.cursor()
-            cur.execute(f"DROP TABLE {self.TB_DEADLINE}")
-            con.commit()
-            self.init_deadline(con)
-            con.close()
-            self.DEADLINE_LST_MODIFIED_DATE = os.path.getmtime(self.DEADLINE)
-            
-
 #--------------------------------------------------
+    def update_schedule(self):
+        pass
+
+    def monitor_schedule(self):
+        """
+            
+        """
+        if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
+            con = sqlite3.connect(self.DATABASE)
+            self.update_schedule(con)
+            con.close()
+            self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
+        # if there is a submission deadline due:
+        return subm_id
+        else:
+            return -1
+            
 
     def is_subscriber(self, addr):
         """
