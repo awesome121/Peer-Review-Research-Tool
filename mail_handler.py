@@ -7,6 +7,8 @@ Mail Handler
 import re
 import msal, sys, requests, json, message_temp, time
 
+from requests.api import request
+
 
 
 class MailHandler:
@@ -19,13 +21,14 @@ class MailHandler:
         """Load and store API configuration parameters"""
         with open("configuration.json") as conf:
             self.config_ = json.load(conf)
+        self.agent = 'cgo54@uclive.ac.nz'
         self.client_id_ = self.config_['client_id'] 
         self.tenant_id_ = self.config_['tenant_id'] 
         self.scopes_ = self.config_['scope']
         self.access_token_ = None
         
     def login_test(self):
-        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6IjFBejdrSFBmR2hsVHFKVldYVmxLSGFKMjB2SGZtdXp0anQxOFdDMXAzRDgiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxNTAzMjExLCJuYmYiOjE2NDE1MDMyMTEsImV4cCI6MTY0MTUwNzMzNiwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhUQUFBQVpxWDZWSmlFTEk1cjI0UGFqNTBkUDhJZTBGSGJ0YkZLMHFPaEprZmM5Zms9IiwiYW1yIjpbInB3ZCJdLCJhcHBfZGlzcGxheW5hbWUiOiJib3QiLCJhcHBpZCI6ImRkODliYjk0LTA3ZjQtNGU1ZC1iNjQxLTEyNWZjOTZiZmRlZSIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiR29uZyIsImdpdmVuX25hbWUiOiJDaGFuZ3hpbmciLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNTEuMjEwLjE2OS43MyIsIm5hbWUiOiJDaGFuZ3hpbmcgR29uZyIsIm9pZCI6IjQ3MmRmMjBlLTk2ZjUtNDdhYS04YjM5LWI5Y2VlYzBkYTgwOSIsIm9ucHJlbV9zaWQiOiJTLTEtNS0yMS05NjYyMDQxNDMtNzQ2OTMyNjkwLTExNTM5NDYyLTI4MTcyMyIsInBsYXRmIjoiMTQiLCJwdWlkIjoiMTAwMzAwMDBBRTRDRkY4RSIsInJoIjoiMC5BVUVBSnhkNDNBNXhWVWk4VEdrQ1pxRzFVWlM3aWQzMEIxMU90a0VTWDhscl9lNUJBRGsuIiwic2NwIjoiSU1BUC5BY2Nlc3NBc1VzZXIuQWxsIE1haWwuUmVhZCBNYWlsLlJlYWRCYXNpYyBNYWlsLlJlYWRXcml0ZSBNYWlsLlNlbmQgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBlbWFpbCIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IkJrZm91OVU4d21nOElvdmRveUpTRjM3Zl83c3ZaZTVtWjZ2LUJ3MzdiNmMiLCJ0ZW5hbnRfcmVnaW9uX3Njb3BlIjoiT0MiLCJ0aWQiOiJkYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEiLCJ1bmlxdWVfbmFtZSI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInVwbiI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInV0aSI6IjZ2WHJfWlQtREUyVWN0bkxmMno4QUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJ4bXNfc3QiOnsic3ViIjoienZVa1UxT2g5LVFxUXBnUTRhejFWZjgwMFVOazVDS2p6UGg5RTZGX0JwMCJ9LCJ4bXNfdGNkdCI6MTM2NjkxMDA5MH0.LmQ0hT22N-sEsieFdczhd1X98vfpojnH2-dCTlg-zsnh6Wwpd53KzT6Mv2-tPvF5A3Yd5tZ03bG-TvbjKtSzaTvn1DAkyer6IWA3hTYhbAFNTxATkrQhLK6B1UVKBUgRGLzMe_CcLlHgSrCsD93upUXrm1eK1wzK59w2pkxcXWWvjw0VWPsnwz0QwkYbaGH4aRqRVbstGPttWb5dfbw0jwCDBDavIhkmaVLmmmfHkbFHWdPlxD6t30eSq-jgvaY4QlFpwilsmunqF1Hu3zgx34UfnlNRmN-W6tEOE2SRrpuL0Khpi3Zrl8zJ1Ss4HBT88aMK1DuxqCdzzTuFxl0wSA"
+        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6IlhnSW9VQ1BwN0dGcDVnU2huUE1NOUZraWlGUFFKY3dwX2RzZVBRLTl1VlkiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxNTA3MDc5LCJuYmYiOjE2NDE1MDcwNzksImV4cCI6MTY0MTUxMTE1NCwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhUQUFBQTFvZTV0OUUramVVbFNMK25VTHBHNlV0WW5lc05BN2N1NFg5dktxQTE5dzA9IiwiYW1yIjpbInB3ZCJdLCJhcHBfZGlzcGxheW5hbWUiOiJib3QiLCJhcHBpZCI6ImRkODliYjk0LTA3ZjQtNGU1ZC1iNjQxLTEyNWZjOTZiZmRlZSIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiR29uZyIsImdpdmVuX25hbWUiOiJDaGFuZ3hpbmciLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNTEuMjEwLjE2OS43MyIsIm5hbWUiOiJDaGFuZ3hpbmcgR29uZyIsIm9pZCI6IjQ3MmRmMjBlLTk2ZjUtNDdhYS04YjM5LWI5Y2VlYzBkYTgwOSIsIm9ucHJlbV9zaWQiOiJTLTEtNS0yMS05NjYyMDQxNDMtNzQ2OTMyNjkwLTExNTM5NDYyLTI4MTcyMyIsInBsYXRmIjoiMTQiLCJwdWlkIjoiMTAwMzAwMDBBRTRDRkY4RSIsInJoIjoiMC5BVUVBSnhkNDNBNXhWVWk4VEdrQ1pxRzFVWlM3aWQzMEIxMU90a0VTWDhscl9lNUJBRGsuIiwic2NwIjoiSU1BUC5BY2Nlc3NBc1VzZXIuQWxsIE1haWwuUmVhZCBNYWlsLlJlYWRCYXNpYyBNYWlsLlJlYWRXcml0ZSBNYWlsLlNlbmQgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBlbWFpbCIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IkJrZm91OVU4d21nOElvdmRveUpTRjM3Zl83c3ZaZTVtWjZ2LUJ3MzdiNmMiLCJ0ZW5hbnRfcmVnaW9uX3Njb3BlIjoiT0MiLCJ0aWQiOiJkYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEiLCJ1bmlxdWVfbmFtZSI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInVwbiI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInV0aSI6IjFzLUhkc21BWmtTQXF3OXpOQ1BUQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJ4bXNfc3QiOnsic3ViIjoienZVa1UxT2g5LVFxUXBnUTRhejFWZjgwMFVOazVDS2p6UGg5RTZGX0JwMCJ9LCJ4bXNfdGNkdCI6MTM2NjkxMDA5MH0.DiQTLl71kYA1nstIy_ANK5oT-b1iiiqACZKp1ZHOAMoEFpKAEtw5v_r2y1rvWBh1i1_SxffjjVlecKEpi1mC91IMSPhKRHvOrOugxZolE4o8LDyTSDdKuix7VysR7gMYIL7R6OfeL8H4uEtiG-gE1SXJ9pO5VSrMmEJh7zWiWuZPuLQwFLgtmuDfRUpSuzFmW9Z8E7wocA9ZIryR0iBxMscZOdKNK98ueAiAvBG37wmKUJTXBko0NaJ7PwacmHu3Hxb0UOe9gWxQFwTk52bFcvtrkYp17QyacVXKd-ycsB6Ru9WKIJiZohVp5MYI87q8RImTnPgl48uZT9T5HqWqaQ"
         self.auth_header_ = {'Authorization': 'Bearer ' + self.access_token_}
 
 
@@ -56,7 +59,6 @@ class MailHandler:
             print(flow["message"])
             sys.stdout.flush()
             result = self.app.acquire_token_by_device_flow(flow)
-            print(result['access_token'])
         if "access_token" in result:
             print(result['access_token'])
             self.access_token_ = result['access_token']
@@ -70,11 +72,12 @@ class MailHandler:
         accounts = self.app.get_accounts()
         result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
         self.access_token_ = result['access_token']
+        print(self.access_token_)
         self.auth_header_ = {'Authorization': 'Bearer ' + result['access_token']}
 
     def check_inbox(self):
         """Return a list of unread mails in dict format from inbox"""
-        self.refresh_token()
+        # self.refresh_token()
         response = requests.get(self.config_['inbox'], headers=self.auth_header_).json()
         if 'error' in response:
             if 'code' in response['error'] and response['error']['code'] == \
@@ -108,17 +111,12 @@ class MailHandler:
                 continue #ignore non-subscriber
             self.mark_as_read(msg_id)
             if self.parser_.is_subm(subject):
-                if self.db_.store_subm(convo_id, from_, \
+                if self.db_.store_subm(msg_id, from_, \
                                           self.parser_.get_subm_id(subject), date):
                     self.reply_subm(msg_id, mail, True)
                 else:
                     self.reply_subm(msg_id, mail, False)
-                #test----------draw reviewers-------------
-                reviewer = 'changxing.gong@gmail.com'
-                #-----------------------------------------
-                new_conv_id, date_sent = self.send_req(self.parser_.get_review_req(), \
-                                                        mail, reviewer)
-                self.db_.store_review_req(convo_id, new_conv_id, reviewer, date_sent)
+                
             elif self.parser_.is_review(subject):
                 if self.db_.store_review(convo_id, date):
                     author = self.db_.find_author_by_convo_id(convo_id)
@@ -140,8 +138,6 @@ class MailHandler:
         data = {'isRead' : 'true'}
         response = requests.patch(self.config_['msg'].format(msg_id), json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
-        print(response.status_code)
-        # print(response.json())
         if 'error' in response:
             print(response)
             print('Error: mark_as_read')
@@ -173,11 +169,36 @@ class MailHandler:
             print('Error: reply_subm')
             exit(1)
 
+    def distribute_subm(self, subm_id):
+        """
+            Provided:
+                subm_id: id of the submission to be distributed
+        """
+        authors = self.db_.draw_authors(subm_id)
+        for author, msg_id in authors:
+            reviewers = self.db_.draw_reviewers(author)
+            for reviewer in reviewers:
+                mail = self.get_mail_by_msg_id(msg_id)
+                new_conv_id, date_sent = self.send_req(self.parser_.get_review_req(), \
+                                                        mail, reviewer)
+                self.db_.store_review_req(msg_id, new_conv_id, reviewer, date_sent)
+
+    def get_mail_by_msg_id(self, msg_id):
+        """
+            Provided:
+                convo_id: a string of conversation id
+            Return:
+                an email object in dict form
+        """
+        response = requests.get(self.config_['msg'].format(msg_id), \
+                                headers=self.auth_header_).json()
+        return response['value'][0] # only 1 mail in the whole list
+
     def send_req(self, subject, mail, dest):
         """
             Provided:
                 subject: a string of mail subject
-                mail: an email in dict format
+                mail: a mail in dict format to be parsed
                 dest: a string of email address
             Return: 
                 conversation id: newly generated conversation id
@@ -202,19 +223,20 @@ class MailHandler:
         }
         if mail['hasAttachments']:
             data['attachments'] = self.get_attachments(mail['id'])
-        response = requests.post(self.config_['send_mail'], json.dumps(data), \
+        response = requests.post(self.config_['create_draft'], json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
-        print(response)
         if 'error' in response:
             print(response)
             print('Error: send_req')
             exit(1)
-        time.sleep(2)
-        convo_id, sent_date = self.get_last_convo()
+        # wait for some time until the message is really sent
+        time.sleep(5)
+        convo_id, sent_date = self.get_last_sent_convo()
         return convo_id, sent_date
 
-    def get_last_convo(self):
+    def get_last_sent_convo(self):
         """
+            Get conversation id and sent date of the last sent message
             Return:
                 Conversation id of the last sent message
                 Sent date of the last sent message
@@ -222,7 +244,6 @@ class MailHandler:
         response = requests.get(self.config_['last_sent_msg'], \
                     headers=self.auth_header_).json()
         convo_id = response['value'][0]['conversationId']  # only one message in list
-        print('get_req_convo', convo_id)
         sent_date = response['value'][0]['sentDateTime']
         return convo_id, sent_date
 

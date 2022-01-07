@@ -127,7 +127,7 @@ class Database:
         addresses = cur.fetchall()
         # header 3 + 4 + 5
         cur.execute(f"CREATE TABLE {self.TB_CHAIN} "+\
-        "('convo_id (subm)' text, author text, subm_id integer, subm_received text, " +\
+        "('msg_id (subm)' text, author text, subm_id integer, subm_received text, " +\
         "'convo_id (review)' text, reviewer text, " + \
             "review_req_sent text, review_received text, " +\
         "'convo_id (eval)' text, rating integer, comment text, " + \
@@ -165,17 +165,27 @@ class Database:
         con.commit()
         con.close()
         return result is not None
+
+    def draw_authors(self, subm_id):
+        """
+            Provided:
+                subm_id: an integer of submission id
+            Return:
+                a list of tuples ('author', 'msg_id (subm)') whose submission 
+                needs to be distributed
+        """
+        raise NotImplementedError
    
     def draw_reviewers(self, author):
         """
-            Provided:
-            a string of an author's email address
             draw three reviewers (except this auther),
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
             reviews in num_review.db.
+            Provided:
+                author: a string of an author's email address 
             Return:
-            a list of reviewers' email addresses
+                a list of reviewers' email addresses
         """
         reviewers = []
         con = sqlite3.connect(self.DATABASE)
@@ -197,10 +207,10 @@ class Database:
         con.close()
         return reviewers
 
-    def store_subm(self, subm_convo_id, author, subm_id, date):
+    def store_subm(self, subm_msg_id, author, subm_id, date):
         """
             Provided:
-            subm_convo_id: submission conversation id
+            subm_msg_id: submission message id
             author: a string of an author's email address
             subm_id: an integer of a submission id, e.g. 1, 2, 3
             date: a string of the date on receiving this submission
@@ -210,7 +220,7 @@ class Database:
             False if it exists already
         """
         
-        print('store_subm, subm convo id:', subm_convo_id)
+        print('store_subm, subm msg id:', subm_msg_id)
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
         print(f"SELECT * FROM {self.TB_CHAIN} " +\
@@ -223,20 +233,20 @@ class Database:
             con.close()
             return False
         cur.execute(f"INSERT INTO {self.TB_CHAIN} " +\
-        "('convo_id (subm)', author, subm_id, subm_received, " +\
+        "('msg_id (subm)', author, subm_id, subm_received, " +\
         "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
         "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
-        f" values (?,?,?,?" + ", NULL" * 9 + ")",\
-            (subm_convo_id, author, subm_id, date))
+        f" values (?,?,?,?,?" + ", NULL" * 9 + ")",\
+            (subm_msg_id, author, subm_id, date))
         con.commit()
         con.close()
         self.view_table_information('chain')
         return True
 
-    def store_review_req(self, subm_convo_id, review_convo_id, reviewer, date_sent):
+    def store_review_req(self, subm_msg_id, review_convo_id, reviewer, date_sent):
         """
             Provided:
-            subm_convo_id: submission conversation id
+            subm_msg_id: submission message id
             review_convo_id: initialised when review request was sent
             reviewer: a string of reviewer's email address to whom it's sent
             date_sent: a string of date on sending the review request
@@ -245,14 +255,14 @@ class Database:
             True on successfully storing
             False otherwise
         """
-        print('store_review_req, subm convo id:', subm_convo_id)
+        print('store_review_req, subm convo id:', subm_msg_id)
         print('store_review_req, review convo id:', review_convo_id)
         self.view_table_information('chain')
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET "convo_id (review)" = '{review_convo_id}', """ +\
                 f""" reviewer = '{reviewer}', review_req_sent = '{date_sent}' """ +\
-                f""" WHERE "convo_id (subm)" = '{subm_convo_id}' """)
+                f""" WHERE "msg_id (subm)" = '{subm_msg_id}' """)
         con.commit()
         con.close()
         self.view_table_information('chain')
