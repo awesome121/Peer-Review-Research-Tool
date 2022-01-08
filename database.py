@@ -144,7 +144,8 @@ class Database:
 
     def monitor_schedule(self):
         """
-            
+            If schedule.csv has been changed, update schedule table
+            If there is a submission deadline due, distibute submissions
         """
         if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
             con = sqlite3.connect(self.DATABASE)
@@ -152,9 +153,9 @@ class Database:
             con.close()
             self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
         # if there is a submission deadline due:
-        return subm_id
-        else:
-            return -1
+        # return subm_id
+        # else:
+        #     return -1
             
 
     def is_subscriber(self, addr):
@@ -240,7 +241,7 @@ class Database:
         "('msg_id (subm)', author, subm_id, subm_received, " +\
         "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
         "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
-        f" values (?,?,?,?,?" + ", NULL" * 9 + ")",\
+        f" values (?,?,?,?" + ", NULL" * 9 + ")",\
             (subm_msg_id, author, subm_id, date))
         con.commit()
         con.close()
