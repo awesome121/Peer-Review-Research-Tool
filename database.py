@@ -40,6 +40,7 @@ class Database:
         self.MAX_SUBMISSION = 6
         self.NUM_REVIEW_REQUEST = 3
         self.SCHEDULE_LST_MODIFIED_DATE = 0
+        self.EMAIL_LST_MODIFIED_DATE = 0
         
 #--------------------------------------------------
     def create_database(self):
@@ -139,7 +140,20 @@ class Database:
         con.commit()
 
 #--------------------------------------------------
-    def update_schedule(self):
+    def update_emaillist(self, con):
+        pass
+
+    def monitor_emaillist(self):
+        """
+        
+        """
+        if os.path.getmtime(self.EMAIL_LIST) != self.EMAIL_LST_MODIFIED_DATE:
+            con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
+            self.update_emaillist(con)
+            con.close()
+            self.EMAIL_LST_MODIFIED_DATE = os.path.getmtime(self.EMAIL_LIST)
+
+    def update_schedule(self, con):
         pass
 
     def monitor_schedule(self):
