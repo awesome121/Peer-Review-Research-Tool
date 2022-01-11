@@ -1,16 +1,16 @@
 """
     Provided (with header, see example):
-    email_list.csv          format: email_list
-    schedule.csv            format: submission_id, date
+        email_list.csv          format(columns): email_list
+        schedule.csv            format(columns): submission_id, date
 
     Generated:
-    database.db
+        database.db
     
     Tables in database.db:
-    email_list
-    schedule
-    num_review
-    chain
+        email_list
+        schedule
+        num_review
+        chain
 """
 
 
@@ -49,12 +49,14 @@ class Database:
             This function further calls subsequent functions init_email_list, 
             init_schedule, init_num_review, init_chain to initialise tables
             email_list, schedule, num_review, and chain respectively.
-        
-            email_list: email address of subscribers
-            schedule: subm_id, start_date, end_date (subm), is_distributed, 
-                      end_date (review), end_date (eval)
-            num_review: currently number of received distribution for each submission 
-            chain: a joined table
+
+            Resourses (Provided by the user):
+                email_list: email address of subscribers
+            Tables (Generated):
+                schedule: subm_id, start_date, end_date (subm), is_distributed, 
+                        end_date (review), end_date (eval)
+                num_review: currently number of received distribution for each submission 
+                chain: a joined table
         """
         con = sqlite3.connect(self.DATABASE)
         self.init_email_list(con)
@@ -140,31 +142,48 @@ class Database:
         con.commit()
 
 #--------------------------------------------------
-    def update_emaillist(self, con):
+    def update_emaillist(self):
+        """
+            This function will be called by monitor_emaillist once emaillist.csv
+            has been changed and self.TB_EMAIL_LIST will be updated.
+        """
         pass
+        # Establish a connection
+        #con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
+        # Sql commands
+
+        #con.close()
+        
 
     def monitor_emaillist(self):
         """
-        
+            This function will constantly monitoring emaillist.csv.
+            If emaillist.csv has been changed, update_emaillist will be called.
         """
+        # If the last modified date has been changed.
         if os.path.getmtime(self.EMAIL_LIST) != self.EMAIL_LST_MODIFIED_DATE:
-            con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
-            self.update_emaillist(con)
-            con.close()
+            # Update self.TB_EMAIL_LIST
+            self.update_emaillist()
+            # Store the lastest last modified date
             self.EMAIL_LST_MODIFIED_DATE = os.path.getmtime(self.EMAIL_LIST)
 
-    def update_schedule(self, con):
+    def update_schedule(self):
         pass
+        # Establish a connection
+        #con = sqlite3.connect(self.DATABASE)
+        # Sql commands
+        
+        #con.close()
+        
 
     def monitor_schedule(self):
         """
-            If schedule.csv has been changed, update schedule table
-            If there is a submission deadline due, distibute submissions
+            This function will constantly monitoring schedule.csv.
+            If schedule.csv has been changed, update_schedule will be called.
+            If there is a submission deadline due, distibute submissions.
         """
         if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
-            con = sqlite3.connect(self.DATABASE)
-            self.update_schedule(con)
-            con.close()
+            self.update_schedule()
             self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
         # if there is a submission deadline due:
         # return subm_id
@@ -175,7 +194,11 @@ class Database:
     def is_subscriber(self, addr):
         """
             Return True if addr is in email address list
-            False otherwise
+            False otherwise.
+            Provided:
+                addr: a string that representing an email address
+            Return:
+                True or False (boolean)
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
@@ -197,7 +220,7 @@ class Database:
    
     def draw_reviewers(self, author):
         """
-            draw three reviewers (except this auther),
+            Draw three reviewers (except this auther),
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
             reviews in num_review.db.
@@ -229,14 +252,13 @@ class Database:
     def store_subm(self, subm_msg_id, author, subm_id, date):
         """
             Provided:
-            subm_msg_id: submission message id
-            author: a string of an author's email address
-            subm_id: an integer of a submission id, e.g. 1, 2, 3
-            date: a string of the date on receiving this submission
-
+                subm_msg_id: submission message id
+                author: a string of an author's email address
+                subm_id: an integer of a submission id, e.g. 1, 2, 3
+                date: a string of the date on receiving this submission
             Return:
-            True on successfully storing
-            False if it exists already
+                True on successfully storing
+                False if it exists already
         """
         
         print('store_subm, subm msg id:', subm_msg_id)
@@ -265,14 +287,13 @@ class Database:
     def store_review_req(self, subm_msg_id, review_convo_id, reviewer, date_sent):
         """
             Provided:
-            subm_msg_id: submission message id
-            review_convo_id: initialised when review request was sent
-            reviewer: a string of reviewer's email address to whom it's sent
-            date_sent: a string of date on sending the review request
-            
+                subm_msg_id: submission message id
+                review_convo_id: initialised when review request was sent
+                reviewer: a string of reviewer's email address to whom it's sent
+                date_sent: a string of date on sending the review request
             Return:
-            True on successfully storing
-            False otherwise
+                True on successfully storing
+                False otherwise
         """
         print('store_review_req, subm convo id:', subm_msg_id)
         print('store_review_req, review convo id:', review_convo_id)
@@ -290,12 +311,11 @@ class Database:
     def store_review(self, review_convo_id, date_received):
         """
             Provided:
-            review_convo_id: initialised when review request was sent
-            date_received: a string of date on receiving the review
-            
+                review_convo_id: initialised when review request was sent
+                date_received: a string of date on receiving the review
             Return:
-            True on successfully storing
-            False if it exists already
+                True on successfully storing
+                False if it exists already
         """
         print('store_review, review convo id:', review_convo_id)
         con = sqlite3.connect(self.DATABASE)
@@ -319,13 +339,12 @@ class Database:
     def store_eval_req(self, review_convo_id, eval_convo_id, date_sent):
         """
             Provided:
-            review_convo_id: submission conversation id
-            eval_convo_id: evaluation conversation id
-            date_sent: a string of date on sending the evaluation request
-            
+                review_convo_id: submission conversation id
+                eval_convo_id: evaluation conversation id
+                date_sent: a string of date on sending the evaluation request
             Return:
-            True on successfully storing
-            False otherwise
+                True on successfully storing
+                False otherwise
         """
         print('store_eval_req, review convo id:', review_convo_id)
         print('store_eval_req, eval convo id:', eval_convo_id)
@@ -342,14 +361,13 @@ class Database:
     def store_eval(self, eval_convo_id, rating, comment, date_received):
         """
             Provided:
-            eval_convo_id: initialised when evaluation request was sent
-            rating: integer, 1-7
-            comment: string of author's comment
-            date_received: a string of date on receiving the evaluation
-            
+                eval_convo_id: initialised when evaluation request was sent
+                rating: integer, 1-7
+                comment: string of author's comment
+                date_received: a string of date on receiving the evaluation
             Return:
-            True on successfully storing
-            False if it exists already
+                True on successfully storing
+                False if it exists already
         """
         print('store_eval, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE)
@@ -391,7 +409,6 @@ class Database:
     def view_table_information(self, table_name):
         """
             A function used to view table's information
-        
         """
         con = sqlite3.connect(self.DATABASE)
         cur = con.cursor()
@@ -399,20 +416,20 @@ class Database:
         result = cur.fetchall()
         print(result)
         con.close()
-        return 
 
 
 #--------------------------------------------------
     def export_table(self, table, filename):
         """
             Provided:
-            table: a string of table name. (e.g. "chain")
-            filename: a string of filename, where the table in database
-                    will be exported to.
-
-            Generates: A string of csv file name with its name corresponding to 
+                table: a string of table name. (e.g. "chain")
+                filename: a string of filename, where the table in database
+                        will be exported to.
+            Generates: 
+                A string of csv file name with its name corresponding to 
                 the table name
-            Return: True on success, False otherwise
+            Return:
+                True on success, False otherwise
         """
         try:
             con = sqlite3.connect(self.DATABASE)
