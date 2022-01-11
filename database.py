@@ -58,7 +58,9 @@ class Database:
                 num_review: currently number of received distribution for each submission 
                 chain: a joined table
         """
+        # Establish a connection
         con = sqlite3.connect(self.DATABASE)
+        # Init tables (Create tables and Insert data)
         self.init_email_list(con)
         self.init_schedule(con)
         self.init_num_review(con)
@@ -148,11 +150,14 @@ class Database:
             has been changed and self.TB_EMAIL_LIST will be updated.
         """
         pass
-        # Establish a connection
-        #con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
-        # Sql commands
+        # #Establish a connection
+        # con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
+        # #Get the cursor
+        # cur = con.cursor()
+        # #Sql commands
 
-        #con.close()
+        # con.commit()
+        # con.close()
         
 
     def monitor_emaillist(self):
@@ -169,11 +174,14 @@ class Database:
 
     def update_schedule(self):
         pass
-        # Establish a connection
-        #con = sqlite3.connect(self.DATABASE)
-        # Sql commands
-        
-        #con.close()
+        # #Establish a connection
+        # con = sqlite3.connect(self.DATABASE)
+        # #Get the cursor
+        # cur = con.cursor()
+        # #Sql commands
+
+        # con.commit()
+        # con.close()
         
 
     def monitor_schedule(self):
@@ -182,8 +190,11 @@ class Database:
             If schedule.csv has been changed, update_schedule will be called.
             If there is a submission deadline due, distibute submissions.
         """
+        # If the last modified date has been changed.
         if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
+            # Update self.TB_EMAIL_LIST
             self.update_schedule()
+            # Store the lastest last modified date
             self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
         # if there is a submission deadline due:
         # return subm_id
@@ -220,7 +231,7 @@ class Database:
    
     def draw_reviewers(self, author):
         """
-            Draw three reviewers (except this auther),
+            Randomly draw three reviewers (except this auther),
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
             reviews in num_review.db.
