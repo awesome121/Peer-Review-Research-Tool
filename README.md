@@ -1,7 +1,7 @@
 # __Peer Review Research Project__
 
 ## Table of Contents
-* [General Info](#General-Info)
+* [Brief](#Brief)
 * [Setup](#Setup)
 * [Privacy](#Privacy)
 * [Security](#Security)
