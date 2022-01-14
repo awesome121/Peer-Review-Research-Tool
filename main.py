@@ -45,7 +45,7 @@ class App:
     def check_deadline(self):
         pass
         # if it's deadline:
-            # threading.Thread(target=create_distributor)
+            # threading.Thread(target=create_distributor) # around 11:59 pm, stay 1-2 hours
 
     def create_listener(self):
         auth_header = {'Authorization': 'Bearer ' + self.token}
@@ -108,7 +108,7 @@ class App:
 
 app = App()
 app.load_config()
-app.connect()
+# app.connect()
 app.init_UI()
 
 

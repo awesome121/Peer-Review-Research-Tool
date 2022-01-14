@@ -77,7 +77,6 @@ class Database:
         with open(self.EMAIL_LIST, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
         lines = [(line,) for line in lines]
-        print(lines)
         cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
         con.commit()
 
