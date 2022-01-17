@@ -1,4 +1,5 @@
-import os, time, threading, admin_UI, sys, msal, json, sys
+import os, time, threading, admin_UI, sys, msal, json, sys, database
+import login_mfa
 from database import Database
 from mail_parser import MailParser
 from mail_handler import MailHandler
@@ -12,14 +13,19 @@ class App:
         self.listener_t = None
         self.distributor = None
         self.distributor_t = None
-        self.daemon_t = None
+        self.deadline_monitor_t = None
+        
+        self.load_config()
+        # self.connect() # event-driven function
+        
+        if os.path.exists("database.db"):
+            login_mfa.AdminUI(self, True)
+        else:
+            self.db = database.Database()
+            self.db.create_database()
+            # admin_UI.Admin_UI(self, False)
         #main thread create UI
 
-    def init_UI(self):
-        if os.path.exists("database.db"):
-            admin_UI.Admin_UI(True) # account exists
-        else:
-            admin_UI.Admin_UI(False) # no account
 
     def load_config(self):
         with open("configuration.json") as conf:
@@ -34,10 +40,10 @@ class App:
         self.listener_t = threading.Thread(target=self.create_listener)
         self.listener_t.start()
 
-        self.daemon_t = threading.Thread(target=self.daemon)
-        self.daemon_t.start()
+        self.deadline_monitor_t = threading.Thread(target=self.deadline_monitor)
+        self.deadline_monitor_t.start()
 
-    def daemon(self):
+    def deadline_monitor(self):
         while True:
             # self.check_deadline()
             self.refresh_token()
@@ -94,7 +100,8 @@ class App:
     def refresh_token(self):
         accounts = self.app.get_accounts()
         result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
-        # print(result['expires_in'])
+        print(result['expires_in'], threading.get_ident(), threading.active_count())
+        time.sleep(1)
         # print(sys.getrefcount(self))
         if self.token != result['access_token']:
             # print(result['access_token'])
@@ -105,11 +112,10 @@ class App:
                 self.distributor.auth_header_ = auth_header
 
     
+if __name__ == '__main__':
+    app = App()
 
-app = App()
-app.load_config()
-# app.connect()
-app.init_UI()
+
 
 
 

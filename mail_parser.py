@@ -1,7 +1,7 @@
 """
 
     e.g.
-    Author -> Agent               Subject: "subm-1"
+    Author -> Agent               Subject: "submission-1"
 
     Agent -> Reviewer             Subject: "Review-Request"
     Reviewer -> Agent             Subject: "Re: Review-Request"

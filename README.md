@@ -10,7 +10,7 @@
 
 ## __Brief__
 <p>This is a peer-review research project for Product Design department at University of Canterbury.</p>
-<p>To aid instructors in proceeding the peer review process, this project is to develop an email forwarding application capable of supporting randomized, double blind review of design work. Authors submit their anonymized work either to an email address, and the work is then sent to three randomly chosen reviewers from a specified list. (Author will not receive their own work) The reviewers submit their reviews back to this dropbox, and the anonymized reviews are returned to the author. The author can then rate the feedback they reviewed. Although the review process is double blind to authors and reviewers, system administrators need to be able to identify owners of work and reviews, as well as collect analytics related to the usage of the system.</p>
+<p>To aid instructors in proceeding the peer review process, this project is to develop an email forwarding application capable of supporting randomized, double blind review of design work. </p> <p>Authors submit their anonymized work either to an email address, and the work is then sent to three randomly chosen reviewers from a specified list. (Author will not receive their own work) The reviewers submit their reviews back to this service account, and the anonymized reviews are returned to the author. The author can then rate the feedback they reviewed. </p> <p>Although the review process is double blind to authors and reviewers, system administrators need to be able to identify owners of work and reviews, as well as collect analytics related to the usage of the system.</p>
 
 ## __Setup__
 * ### App Registration
@@ -43,10 +43,10 @@
 
 
 * ### Email Content
-    Furthermore, it captures email header information such as subject, from, receive date, message id, conversation id. It only parses the email body to acquire rating and comment while storing evaluation. For more detailed information such as content of attachments and submission content, please log in the service account on Microsoft Outlook (This application also provides relevant author/reviewer information for looking up).
+    Furthermore, it captures email header information such as subject, from, receive date, message id, conversation id. It only parses the email body to acquire rating and comment while storing evaluation. For more detailed information such as content of attachments and submission content, please log in the service account on Microsoft Outlook. This application also provides relevant author/reviewer information for looking up.
 
 ## __Security__
-It runs on a server within the university network. Only certain APIs are used. This application keeps a list of students and instructors, it only serves this group of email addresses. If there is an email from an unknown address, it will be ignored.
+It runs on a server within the university network. Only certain APIs are used. This application keeps a list of students and instructors, it only serves a certain group of email addresses. If there is an email from an unknown address, it will be ignored.
 
 ## __Dependencies__
 Python 3.7+
