@@ -1,3 +1,8 @@
+"""
+These are the prompt message prepend into message
+Format can be HTML with CSS.
+"""
+
 SUBMISSION_SUCCESS = \
 """<p>Thanks for your submission!<br>We&apos;ve received your submission successfully.</p>
 <p>Your submission will be anonymously distributed to 3 randomly selected reviewers.&nbsp;</p>

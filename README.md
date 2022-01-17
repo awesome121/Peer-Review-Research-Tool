@@ -1,7 +1,7 @@
 # __Peer Review Research Project__
 
 ## Table of Contents
-* [General Info](#General-Info)
+* [Brief](#Brief)
 * [Setup](#Setup)
 * [Privacy](#Privacy)
 * [Security](#Security)
@@ -46,7 +46,7 @@
     Furthermore, it captures email header information such as subject, from, receive date, message id, conversation id. It only parses the email body to acquire rating and comment while storing evaluation. For more detailed information such as content of attachments and submission content, please log in the service account on Microsoft Outlook (This application also provides relevant author/reviewer information for looking up).
 
 ## __Security__
-    It runs on a server within the university network. Only certain APIs are used. This application keeps a list of students and instructors, it only serves this group of email addresses. If there is an email from an unknown address, it will be ignored.
+It runs on a server within the university network. Only certain APIs are used. This application keeps a list of students and instructors, it only serves this group of email addresses. If there is an email from an unknown address, it will be ignored.
 
 ## __Dependencies__
 Python 3.7+
