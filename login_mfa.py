@@ -70,11 +70,13 @@ class AdminUI:
     def connect_btn_onclick(self):
         print(2, flush=True)
         self.mainwindow.hide()
-        if hasattr(self, 'new_window'):
+        if not hasattr(self, 'new_window'):
             self.new_window = QtWidgets.QDialog()
             ui = Ui_Dialog(self.mainwindow)
             ui.setupUi(self.new_window)
-        self.new_window.show()
+            self.new_window.show()
+        else:
+            self.new_window.show()
 
 
 class Ui_Dialog(object):
