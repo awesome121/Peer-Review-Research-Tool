@@ -114,9 +114,6 @@ class App:
             del self.flow
         except AttributeError:
             return
-        
-        
-        
     
 
     def refresh_token(self):
@@ -135,8 +132,6 @@ class App:
 
     
 if __name__ == '__main__':
-    win = admin_UI()
-    win.login()
     app = App()
 
 
