@@ -130,14 +130,4 @@ class Ui_Dialog(object):
 
 
     def back_btn_onclick(self):
-        if hasattr(self.app, 'flow'):
             self.app.flow['expires_at'] = 0
-        self.window.done(self.window.Accepted)
-        self.parent.show()
-
-    
-        
-        
-
-
-

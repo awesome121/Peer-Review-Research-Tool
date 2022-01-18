@@ -135,6 +135,8 @@ class App:
 
     
 if __name__ == '__main__':
+    win = admin_UI()
+    win.login()
     app = App()
 
 
