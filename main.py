@@ -3,6 +3,7 @@ import login_mfa
 from database import Database
 from mail_parser import MailParser
 from mail_handler import MailHandler
+from login_mfa import AdminUI, Ui_Dialog
 # os.system("rm database.db")
 # db.create_database()
 
@@ -113,6 +114,8 @@ class App:
 
     
 if __name__ == '__main__':
+    win = admin_UI()
+    win.login()
     app = App()
 
 
