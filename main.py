@@ -1,9 +1,9 @@
-import os, time, threading, admin_UI, sys, msal, json, sys, database
+import os, time, threading, sys, msal, json, sys, database
 import login_mfa
 from database import Database
 from mail_parser import MailParser
 from mail_handler import MailHandler
-from login_mfa import AdminUI, Ui_Dialog
+from PyQt5.QtCore import QObject
 # os.system("rm database.db")
 # db.create_database()
 
@@ -16,6 +16,7 @@ class App:
         self.distributor_t = None
         self.deadline_monitor_t = None
         
+        
         self.load_config()
         # self.connect() # event-driven function
         
@@ -24,7 +25,6 @@ class App:
         else:
             self.db = database.Database()
             self.db.create_database()
-            # admin_UI.Admin_UI(self, False)
         #main thread create UI
 
 
@@ -35,9 +35,12 @@ class App:
         self.tenant_id_ = self.config_['tenant_id'] 
         self.scopes_ = self.config_['scope']
 
-    def connect(self):
+    def try_connect(self):
+        self.auth_t = threading.Thread(target=self.login)
+        self.auth_t.start()
+
+    def connect_succuss(self):
         """UI event-driven function"""
-        self.login()
         self.listener_t = threading.Thread(target=self.create_listener)
         self.listener_t.start()
 
@@ -71,31 +74,39 @@ class App:
             Otherwise, a new device flow is initiated
             An url and an authentication code will be displayed upon initiation 
         """
-        result = None
-        # Note: If your device-flow app does not have any interactive ability, you can
-        #   completely skip the following cache part. But here we demonstrate it anyway.
-        # We now check the cache to see if we have some end users signed in before.
-        sys.stdout.flush()
-        self.app = msal.PublicClientApplication(self.client_id_, authority=self.tenant_id_)
-        accounts = self.app.get_accounts()
-        if accounts:
-            print("Pick the account you want to use to proceed:")
-            print(accounts)
-            # Assuming the end user chose this one
-            chosen = accounts[0]
-            # Now let's try to find a token in cache for this account
-            result = self.app.acquire_token_silent(self.scopes_, account=chosen)
-        if not result:
-            flow = self.app.initiate_device_flow(scopes=self.scopes_)
-            print(flow["message"])
+        try:
+            # print(threading.active_count())
+            result = None
+            # Note: If your device-flow app does not have any interactive ability, you can
+            #   completely skip the following cache part. But here we demonstrate it anyway.
+            # We now check the cache to see if we have some end users signed in before.
             sys.stdout.flush()
-            result = self.app.acquire_token_by_device_flow(flow)
-        if "access_token" in result:
-            self.token = result['access_token']
-        else:
-            print(result.get("error"))
-            print(result.get("error_description"))
-            print(result.get("correlation_id"))
+            self.app = msal.PublicClientApplication(self.client_id_, authority=self.tenant_id_)
+            accounts = self.app.get_accounts()
+            if accounts:
+                print("Pick the account you want to use to proceed:")
+                print(accounts)
+                # Assuming the end user chose this one
+                chosen = accounts[0]
+                # Now let's try to find a token in cache for this account
+                result = self.app.acquire_token_silent(self.scopes_, account=chosen)
+            if not result:
+                flow = self.app.initiate_device_flow(scopes=self.scopes_)
+                self.flow = flow
+                # print(flow["message"])
+                sys.stdout.flush()
+                result = self.app.acquire_token_by_device_flow(flow)
+                del self.flow
+            if "access_token" in result: # success
+                self.token = result['access_token']
+                self.connect_succuss()
+            else: # failure
+                sys.exit()
+        except AttributeError:
+            sys.exit()
+        except:
+            sys.exit()
+        
     
 
     def refresh_token(self):
