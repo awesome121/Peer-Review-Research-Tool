@@ -41,6 +41,7 @@ class App:
 
     def connect_succuss(self):
         """UI event-driven function"""
+        print('connection success', flush=True)
         self.listener_t = threading.Thread(target=self.create_listener)
         self.listener_t.start()
 
@@ -96,16 +97,25 @@ class App:
                 # print(flow["message"])
                 sys.stdout.flush()
                 result = self.app.acquire_token_by_device_flow(flow)
-                del self.flow
             if "access_token" in result: # success
                 self.token = result['access_token']
                 self.connect_succuss()
             else: # failure
+                self.clear_auth()
                 sys.exit()
         except AttributeError:
             sys.exit()
         except:
+            self.clear_auth()
             sys.exit()
+    
+    def clear_auth(self):
+        try:
+            del self.flow
+        except AttributeError:
+            return
+        
+        
         
     
 

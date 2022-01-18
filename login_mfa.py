@@ -72,6 +72,7 @@ class AdminUI:
     
 
     def connect_btn_onclick(self):
+        self.app.clear_auth()
         self.dialog = QtWidgets.QDialog()
         child = Ui_Dialog(self.app, self.login_window)
         child.setupUi(self.dialog)
@@ -111,9 +112,6 @@ class Ui_Dialog(object):
 
         self.retranslateUi(self.window)
         QtCore.QMetaObject.connectSlotsByName(self.window)
-    
-        
-
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -124,7 +122,7 @@ class Ui_Dialog(object):
             self.prompt_lb.setText('Waiting for response...')
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.set_prompt)  # execute `display_time`
-            self.timer.setInterval(1)
+            self.timer.setInterval(5)
             self.timer.start()
         else:
             self.prompt_lb.setText(self.app.flow["message"])
