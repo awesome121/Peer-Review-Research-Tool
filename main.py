@@ -21,7 +21,7 @@ class App:
         # self.connect() # event-driven function
         
         if os.path.exists("database.db"):
-            login_mfa.AdminUI(self, True)
+            login_mfa.LoginWindow(self, True)
         else:
             self.db = database.Database()
             self.db.create_database()
