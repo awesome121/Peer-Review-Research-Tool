@@ -55,4 +55,10 @@ EVAL_REQUEST_PROMPT = \
 </div><br><br><br>"""
 
 
-
+USAGE_PROMPT = \
+"""<p>Thanks for your email!<br></p>
+<p>It seems you have an invalid subject<br><br></p>
+<p>To submit your work, please send us an email with subject "submission-x" where "x" is the submission id<br></p>
+<p>To submit your review, please click "reply" to our review request<br><</p>
+<p>To submit your evaluation, please click "reply" to our evaluation request<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>"""
