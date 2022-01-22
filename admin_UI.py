@@ -1,4 +1,5 @@
 # Created by: PyQt5 UI code generator 5.15.6
+from tokenize import Triple
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import sys
@@ -108,8 +109,6 @@ class LoginWindow:
 
 class LoginDialog:
     def __init__(self, controller, parent):
-        self.is_connected = False
-        self.is_authehticated = False
         self.controller = controller
         self.widget = QtWidgets.QDialog()
         self.parent = parent
@@ -148,30 +147,29 @@ class LoginDialog:
         if not self.controller.has_auth_flow():
             print('waiting for flow')
             self.prompt_lb.setText('Waiting for response...')
-            if not self.is_connected:
-                self.con_timer = QtCore.QTimer()
-                self.con_timer.timeout.connect(self.set_prompt)  # execute `set_prompt`
-                self.con_timer.setInterval(5)
-                self.con_timer.start()
+            self.con_timer = QtCore.QTimer()
+            self.con_timer.timeout.connect(self.set_prompt)  # execute `set_prompt`
+            self.con_timer.setSingleShot(True)
+            self.con_timer.setInterval(1000)
+            self.con_timer.start()
         else:
-            self.is_connected = True
             print('detected flow')
             self.prompt_lb.setText(self.controller.get_auth_flow_msg())
             self.detect_auth()
 
     def detect_auth(self):
-        if self.controller.has_valid_token() and not self.is_authehticated:
-            self.is_authehticated = True
+        if self.controller.has_valid_token():
             print('detected token')
             self.has_detected_token = True
             self.controller.set_auth_success()
             self.widget.done(self.widget.Accepted)
             self.controller.land_on_dashboard()
-        elif not self.is_authehticated:
+        else:
             print('waiting for token')
             self.auth_timer = QtCore.QTimer()
             self.auth_timer.timeout.connect(self.detect_auth)
-            self.auth_timer.setInterval(1)
+            self.auth_timer.setSingleShot(True)
+            self.auth_timer.setInterval(1000)
             self.auth_timer.start()
 
     def back_btn_onclick(self):
