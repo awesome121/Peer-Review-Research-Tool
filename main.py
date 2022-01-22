@@ -1,32 +1,28 @@
-import os, time, threading, sys, msal, json, sys, database
-import login_mfa
-from database import Database
-from mail_parser import MailParser
+import os, time, threading, sys, msal, json
+import admin_UI, database
 from mail_handler import MailHandler
-from PyQt5.QtCore import QObject
 # os.system("rm database.db")
 # db.create_database()
 
 class App:
     def __init__(self):
-        self.token = None
         self.listener = None
         self.listener_t = None
         self.distributor = None
         self.distributor_t = None
         self.deadline_monitor_t = None
-        
-        
+        self.is_auth_success = False
         self.load_config()
         # self.connect() # event-driven function
-        
         if os.path.exists("database.db"):
-            login_mfa.LoginWindow(self, True)
+            print(1)
+            self.UI_controller = admin_UI.Controller(self, True)
+            self.UI_controller.land_on_dashboard()
         else:
             self.db = database.Database()
             self.db.create_database()
-        #main thread create UI
-
+            self.UI_controller = admin_UI.Controller(self, False)
+            
 
     def load_config(self):
         with open("configuration.json") as conf:
@@ -101,15 +97,15 @@ class App:
                 self.token = result['access_token']
                 self.connect_succuss()
             else: # failure
-                self.clear_auth()
+                self.clear_auth_flow()
                 sys.exit()
         except AttributeError:
             sys.exit()
         except:
-            self.clear_auth()
+            self.clear_auth_flow()
             sys.exit()
     
-    def clear_auth(self):
+    def clear_auth_flow(self):
         try:
             del self.flow
         except AttributeError:
@@ -129,6 +125,18 @@ class App:
             self.listener.auth_header_ = auth_header
             if self.distributor:
                 self.distributor.auth_header_ = auth_header
+
+    def set_auth_success(self):
+        self.is_auth_success = True
+
+    def reset_auth_success(self):
+        self.is_auth_success = False
+
+    def is_authenticated(self):
+        return self.is_auth_success
+
+    def interrupt_auth_flow(self):
+        self.flow['expires_at'] = 0
 
     
 if __name__ == '__main__':
