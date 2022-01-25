@@ -26,8 +26,9 @@ class MailHandler:
         and it's expected to run for weeks.
         This class handles internal email routing logics, interacting with Database class.
     """
-    def __init__(self, auth_header):
+    def __init__(self, app, auth_header):
         """Load and store API configuration parameters"""
+        self.app = app
         self.auth_header_ = auth_header
         with open("configuration.json") as conf:
             self.config_ = json.load(conf)
@@ -41,7 +42,7 @@ class MailHandler:
                 of unread emails, and further process them.
             Sleeping for 5 minites if the inbox is empty 
         """
-        while True:
+        while self.app.get_conn_status():
             mails = self.check_inbox()
             if len(mails) != 0:
                 self.process_unread(mails)
@@ -176,6 +177,8 @@ class MailHandler:
                 new_conv_id, date_sent = self.send_req(self.parser_.get_review_req(), \
                                                         mail, reviewer)
                 self.db_.store_review_req(msg_id, new_conv_id, reviewer, date_sent)
+                if not self.app.get_conn_status():
+                    return
 
     def get_mail_by_msg_id(self, msg_id):
         """

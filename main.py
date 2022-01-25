@@ -6,23 +6,27 @@ from mail_handler import MailHandler
 
 class App:
     def __init__(self):
-        self.listener = None
-        self.listener_t = None
-        self.distributor = None
-        self.distributor_t = None
-        self.deadline_monitor_t = None
-        self.is_auth_success = False
+        self.init_param()
         self.load_config()
         # self.connect() # event-driven function
         if os.path.exists("database.db"):
-            print(1)
             self.UI_controller = admin_UI.Controller(self, True)
             self.UI_controller.land_on_dashboard()
         else:
             self.db = database.Database()
             self.db.create_database()
             self.UI_controller = admin_UI.Controller(self, False)
-            
+    
+    def init_param(self):
+        self.listener = None
+        self.listener_t = None
+        self.distributor = None
+        self.distributor_t = None
+        self.token = None
+        self.flow = None
+        self.deadline_monitor_t = None
+        self.is_auth_success = False
+        self.is_connected = False
 
     def load_config(self):
         with open("configuration.json") as conf:
@@ -38,6 +42,7 @@ class App:
     def connect_succuss(self):
         """UI event-driven function"""
         print('connection success', flush=True)
+        self.is_connected = True
         self.listener_t = threading.Thread(target=self.create_listener)
         self.listener_t.start()
 
@@ -45,9 +50,10 @@ class App:
         self.deadline_monitor_t.start()
 
     def deadline_monitor(self):
-        while True:
+        while self.is_connected:
             # self.check_deadline()
             self.refresh_token()
+        self.init_param()
     
     def check_deadline(self):
         pass
@@ -56,12 +62,12 @@ class App:
 
     def create_listener(self):
         auth_header = {'Authorization': 'Bearer ' + self.token}
-        self.listener = MailHandler(auth_header)
+        self.listener = MailHandler(self, auth_header)
         self.listener.listen()
 
     def create_distributor(self):
         auth_header = {'Authorization': 'Bearer ' + self.token}
-        self.distributor = MailHandler(auth_header)
+        self.distributor = MailHandler(self, auth_header)
         self.distributor.distribute_subm()
 
 
@@ -111,7 +117,6 @@ class App:
         except AttributeError:
             return
     
-
     def refresh_token(self):
         accounts = self.app.get_accounts()
         result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
@@ -138,6 +143,11 @@ class App:
     def interrupt_auth_flow(self):
         self.flow['expires_at'] = 0
 
+    def disconnect(self):
+        self.is_connected = False
+
+    def get_conn_status(self):
+        return self.is_connected
     
 if __name__ == '__main__':
     app = App()

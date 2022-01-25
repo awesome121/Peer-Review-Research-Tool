@@ -1,4 +1,5 @@
 # Created by: PyQt5 UI code generator 5.15.6
+import time
 from tokenize import Triple
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -8,6 +9,7 @@ class Controller:
     def __init__(self, app, has_account) -> None:
         self.app = app
         self.qt_app = QtWidgets.QApplication(sys.argv)
+        self.dashboard = None
         # print(1, flush=True)
         if has_account:
             self.land_on_dashboard()
@@ -22,10 +24,10 @@ class Controller:
         self.dashboard = Dashboard(self)
 
     def has_valid_token(self):
-        return True if hasattr(self.app, 'token') else False
+        return True if hasattr(self.app, 'token') and self.app.token is not None else False
 
     def has_auth_flow(self):
-        return True if hasattr(self.app, 'flow') else False
+        return True if hasattr(self.app, 'flow') and self.app.flow is not None else False
 
     def get_auth_flow_msg(self):
         return self.app.flow['message']
@@ -41,7 +43,9 @@ class Controller:
 
     def try_connect(self):
         self.app.try_connect()
-        
+
+    def disconnect(self):
+        self.app.disconnect()
 
 
 class LoginWindow:
@@ -110,11 +114,14 @@ class LoginWindow:
 class LoginDialog:
     def __init__(self, controller, parent):
         self.controller = controller
-        self.widget = QtWidgets.QDialog()
         self.parent = parent
+        self.widget = QtWidgets.QDialog()
+        self.has_active_widget = True # used to break timer
         self.controller.try_connect()
         self.setupUi()
-        self.widget.exec()
+
+        dialog_code = self.widget.exec()
+        self.has_active_widget = False
 
     def setupUi(self):
         self.widget.setObjectName("Dialog")
@@ -158,19 +165,20 @@ class LoginDialog:
             self.detect_auth()
 
     def detect_auth(self):
-        if self.controller.has_valid_token():
-            print('detected token')
-            self.has_detected_token = True
-            self.controller.set_auth_success()
-            self.widget.done(self.widget.Accepted)
-            self.controller.land_on_dashboard()
-        else:
-            print('waiting for token')
-            self.auth_timer = QtCore.QTimer()
-            self.auth_timer.timeout.connect(self.detect_auth)
-            self.auth_timer.setSingleShot(True)
-            self.auth_timer.setInterval(1000)
-            self.auth_timer.start()
+        if self.has_active_widget:
+            if self.controller.has_valid_token():
+                print('detected token')
+                self.has_detected_token = True
+                self.controller.set_auth_success()
+                self.widget.done(self.widget.Accepted)
+                self.controller.land_on_dashboard()
+            else:
+                print('waiting for token')
+                self.auth_timer = QtCore.QTimer()
+                self.auth_timer.timeout.connect(self.detect_auth)
+                self.auth_timer.setSingleShot(True)
+                self.auth_timer.setInterval(1000)
+                self.auth_timer.start()
 
     def back_btn_onclick(self):
         if self.controller.has_auth_flow():
@@ -187,7 +195,6 @@ class LoginDialog:
     
 class Dashboard:
     def __init__(self, controller):
-        print('create dashboard')
         self.controller = controller
         self.widget = QtWidgets.QMainWindow()
         self.current_selected_tab_1 = None
@@ -197,8 +204,9 @@ class Dashboard:
         self.total_rating = None
         self.total_students = None
         self.server_email_address = None
-        self.connection_status = None
+        self.connection_status = False
         self.setupUi()
+        self.update_conn_status()
         self.widget.show()
 
     def setupUi(self):
@@ -254,7 +262,7 @@ class Dashboard:
         self.pushButton.setGeometry(QtCore.QRect(600, 471, 120, 51))
         self.pushButton.setStyleSheet("color: rgb(74, 255, 14);")
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(self.on_clicked_button_tab_1)
+        self.pushButton.clicked.connect(self.conn_btn_onclick)
         # Add tab_main to the tabWidget
         self.tabWidget.addTab(self.tab_main, "")
         # Create tab_students_details
@@ -270,7 +278,7 @@ class Dashboard:
         self.retranslateUi(self.widget)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self.widget)
-
+        
     def retranslateUi(self, dashboard):
         _translate = QtCore.QCoreApplication.translate
         dashboard.setWindowTitle(_translate("Dashboard", "Dashboard"))
@@ -295,21 +303,30 @@ class Dashboard:
         elif selected_value == "Rating":
             self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")
 
-    def on_clicked_button_tab_1(self):
+    def conn_btn_onclick(self):
+        print("click button, popping dialog")
+        if not self.controller.has_valid_token():
+            self.child = LoginDialog(self.controller, self)
+        else:
+            self.child = DisconnectDialog(self.controller, self)
+        self.update_conn_status()
+
+    def update_conn_status(self):
         if not self.controller.has_valid_token():
             self.connection_status = "Disconnected"
             # If disconnected. Token exist
             self.label_1.setText(f"Current Status: {self.connection_status}")
             self.pushButton.setText("Connect")
             self.label_1.setStyleSheet("color: rgb(255, 43, 32);font: 18pt \".AppleSystemUIFont\";")
-            self.pushButton.setStyleSheet("color: rgb(74, 255, 14);")
+            self.pushButton.setStyleSheet("color: rgb(20, 102, 26);")
         elif self.controller.has_valid_token():
             # If connected
+            self.connection_status = "Connected"
             self.label_1.setText(f"Current Status: {self.connection_status}")
             self.label_1.setGeometry(QtCore.QRect(540, 10, 200, 21))
-            self.label_1.setStyleSheet("color: rgb(255, 43, 32);font: 18pt \".AppleSystemUIFont\";")
-            self.pushButton.setStyleSheet("color: rgb(255, 43, 32);")
-        print("button cliecked")
+            self.label_1.setStyleSheet("color: rgb(20, 102, 26);font: 18pt \".AppleSystemUIFont\";")
+            self.pushButton.setText("Disconnect")
+            self.pushButton.setStyleSheet("color: rgb(255, 43, 32);") # red
 
     def show(self):
         self.widget.show()
@@ -318,5 +335,61 @@ class Dashboard:
         self.widget.hide()
         
 
+class DisconnectDialog:
+    def __init__(self, controller, parent) -> None:
+        self.controller = controller
+        self.parent = parent
+        self.widget = QtWidgets.QDialog()
+        self.setupUi(self.widget)
+        self.widget.show()
 
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(408, 194)
+        self.gridLayout = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout.setObjectName("gridLayout")
+        self.prompt_lb = QtWidgets.QLabel(Dialog)
+        self.prompt_lb.setCursor(QtGui.QCursor(QtCore.Qt.IBeamCursor))
+        self.prompt_lb.setObjectName("prompt_lb")
+        self.gridLayout.addWidget(self.prompt_lb, 1, 0, 1, 1)
+        self.disconnect_btn = QtWidgets.QPushButton(Dialog)
+        self.disconnect_btn.setAutoFillBackground(True)
+        self.disconnect_btn.setIconSize(QtCore.QSize(40, 40))
+        self.disconnect_btn.setObjectName("disconnect_btn")
+        self.disconnect_btn.clicked.connect(self.disconnect_btn_onclick)
+        self.gridLayout.addWidget(self.disconnect_btn, 3, 0, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem1, 4, 1, 1, 1)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem2, 4, 0, 1, 1)
+        self.back_btn = QtWidgets.QPushButton(Dialog)
+        self.back_btn.setIconSize(QtCore.QSize(35, 30))
+        self.back_btn.setObjectName("back_btn")
+        self.back_btn.clicked.connect(self.back_btn_onclick)
+        self.gridLayout.addWidget(self.back_btn, 3, 1, 1, 1)
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def back_btn_onclick(self):
+        self.widget.done(self.widget.Accepted)
+
+    def disconnect_btn_onclick(self):
+        self.controller.disconnect()
+        print('disconnect')
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.parent.update_conn_status)
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(1000)
+        self.timer.start()
+        self.widget.done(self.widget.Accepted)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.prompt_lb.setText(_translate("Dialog", "Are you sure you want to disconnect?"))
+        self.disconnect_btn.setText(_translate("Dialog", "Yes,  I am sure"))
+        self.back_btn.setText(_translate("Dialog", "Oops,  I was wrong"))
 
