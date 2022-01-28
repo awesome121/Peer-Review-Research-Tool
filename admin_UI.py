@@ -171,7 +171,8 @@ class LoginDialog:
                 self.has_detected_token = True
                 self.controller.set_auth_success()
                 self.widget.done(self.widget.Accepted)
-                self.controller.land_on_dashboard()
+                if not self.controller.dashboard:
+                    self.controller.land_on_dashboard()
             else:
                 print('waiting for token')
                 self.auth_timer = QtCore.QTimer()
