@@ -15,6 +15,8 @@
 
 
 import csv, sqlite3, sys, os
+from socket import timeout
+from time import time
 
 class Database:
     """
@@ -37,6 +39,7 @@ class Database:
         self.TB_NUM_REVIEW = "num_review"
         self.TB_CHAIN = "chain"
         # Database constants:
+        self.CON_TIMEOUT = 60 # seconds
         self.MAX_SUBMISSION = 6
         self.NUM_REVIEW_REQUEST = 3
         self.SCHEDULE_LST_MODIFIED_DATE = 0
@@ -59,7 +62,7 @@ class Database:
                 chain: a joined table
         """
         # Establish a connection
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         # Init tables (Create tables and Insert data)
         self.init_email_list(con)
         self.init_schedule(con)
@@ -70,7 +73,7 @@ class Database:
     def init_email_list(self, con):
         """
             ===This function can be called only on initialising database===
-            Provided:
+            Param:
                 connection to database.db
                 email_list.csv 
             Generates:
@@ -87,7 +90,7 @@ class Database:
     def init_schedule(self, con):
         """
             ===This function can be called only on initialising database===
-            Provided:
+            Param:
                 connection to database.db
                 schedule.csv
             Generates:
@@ -108,7 +111,7 @@ class Database:
     def init_num_review(self, con):
         """
             ===This function can be called only on initialising database===
-            Provided:
+            Param:
                 connection to database.db
             Generates:
                 num_review table in database.db
@@ -125,7 +128,7 @@ class Database:
     def init_chain(self, con):
         """
             ===This function can be called only on initialising database===
-            Provided:
+            Param:
                 connection to database.db
             Generates:
                 chain table in database.db
@@ -150,7 +153,7 @@ class Database:
         """
         pass
         # #Establish a connection
-        # con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE)
+        # con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE, timeout=self.CON_TIMEOUT)
         # #Get the cursor
         # cur = con.cursor()
         # #Sql commands
@@ -174,7 +177,7 @@ class Database:
     def update_schedule(self):
         pass
         # #Establish a connection
-        # con = sqlite3.connect(self.DATABASE)
+        # con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         # #Get the cursor
         # cur = con.cursor()
         # #Sql commands
@@ -200,17 +203,26 @@ class Database:
         # else:
         #     return -1
             
+    def get_subscriber_total(self):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT COUNT(*) from '{self.TB_EMAIL_LIST}'").fetchone()
+        con.commit()
+        con.close()
+        # result is a list of tuples, the tuples are columns corresponds to the header
+        count = result[0][0]
+        return count
 
     def is_subscriber(self, addr):
         """
             Return True if addr is in email address list
             False otherwise.
-            Provided:
+            Param:
                 addr: a string that representing an email address
             Return:
                 True or False (boolean)
         """
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' WHERE address = '{addr}'")\
                     .fetchone()
@@ -220,7 +232,7 @@ class Database:
 
     def draw_authors(self, subm_id):
         """
-            Provided:
+            Param:
                 subm_id: an integer of submission id
             Return:
                 a list of tuples ('author', 'msg_id (subm)') whose submission 
@@ -234,13 +246,13 @@ class Database:
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
             reviews in num_review.db.
-            Provided:
+            Param:
                 author: a string of an author's email address 
             Return:
                 a list of reviewers' email addresses
         """
         reviewers = []
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         # Reviewer who has lowest number of work will have highest priority
         # number = 0
@@ -261,7 +273,7 @@ class Database:
 
     def store_subm(self, subm_msg_id, author, subm_id, date):
         """
-            Provided:
+            Param:
                 subm_msg_id: submission message id
                 author: a string of an author's email address
                 subm_id: an integer of a submission id, e.g. 1, 2, 3
@@ -272,7 +284,7 @@ class Database:
         """
         
         print('store_subm, subm msg id:', subm_msg_id)
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         print(f"SELECT * FROM {self.TB_CHAIN} " +\
             f"WHERE author = '{author}' AND subm_id = {subm_id}")
@@ -296,7 +308,7 @@ class Database:
 
     def store_review_req(self, subm_msg_id, review_convo_id, reviewer, date_sent):
         """
-            Provided:
+            Param:
                 subm_msg_id: submission message id
                 review_convo_id: initialised when review request was sent
                 reviewer: a string of reviewer's email address to whom it's sent
@@ -308,7 +320,7 @@ class Database:
         print('store_review_req, subm convo id:', subm_msg_id)
         print('store_review_req, review convo id:', review_convo_id)
         self.view_table_information('chain')
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET "convo_id (review)" = '{review_convo_id}', """ +\
                 f""" reviewer = '{reviewer}', review_req_sent = '{date_sent}' """ +\
@@ -320,7 +332,7 @@ class Database:
 
     def store_review(self, review_convo_id, date_received):
         """
-            Provided:
+            Param:
                 review_convo_id: initialised when review request was sent
                 date_received: a string of date on receiving the review
             Return:
@@ -328,7 +340,7 @@ class Database:
                 False if it exists already
         """
         print('store_review, review convo id:', review_convo_id)
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         result = cur.execute(f""" SELECT * FROM {self.TB_CHAIN} WHERE """ +\
@@ -348,7 +360,7 @@ class Database:
 
     def store_eval_req(self, review_convo_id, eval_convo_id, date_sent):
         """
-            Provided:
+            Param:
                 review_convo_id: submission conversation id
                 eval_convo_id: evaluation conversation id
                 date_sent: a string of date on sending the evaluation request
@@ -358,7 +370,7 @@ class Database:
         """
         print('store_eval_req, review convo id:', review_convo_id)
         print('store_eval_req, eval convo id:', eval_convo_id)
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET "eval_req_sent" = '{date_sent}', """ +\
                 f""" "convo_id (eval)" = '{eval_convo_id}' """ +\
@@ -370,7 +382,7 @@ class Database:
 
     def store_eval(self, eval_convo_id, rating, comment, date_received):
         """
-            Provided:
+            Param:
                 eval_convo_id: initialised when evaluation request was sent
                 rating: integer, 1-7
                 comment: string of author's comment
@@ -380,7 +392,7 @@ class Database:
                 False if it exists already
         """
         print('store_eval, eval convo id:', eval_convo_id)
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} WHERE " +\
@@ -393,26 +405,53 @@ class Database:
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET rating = {int(rating)}, comment = '{comment}', """+\
             f"eval_received = '{date_received}' " +\
             f""" WHERE "convo_id (eval)" = '{eval_convo_id}' """)
-        con.commit()
-        
+        con.commit()      
         con.close()
         self.view_table_information('chain')
         return True
 
     def find_author_by_convo_id(self, review_convo_id):
         """
-            Provided:
+            Param:
                 eval_convo_id: initialised when evaluation request was sent
             Return:
                 author: a string of an author's email address
         """
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         author = cur.execute(f"SELECT author FROM {self.TB_CHAIN} WHERE " +\
                             f""" "convo_id (review)" = '{review_convo_id}' """)\
                     .fetchone()['author']
         return author
+
+    def get_num_item_by_id(self, subm_id, item):
+        """
+            Param:
+                subm_id: a string of submission id
+                item: a string, can be submission, review, evaluation
+            Return:
+                an integer, the number of submission/review/evaluation
+                corresponding to subm_id
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        if item == 'submission':
+            result = cur.execute(f"SELECT COUNT(*) FROM {self.TB_CHAIN} WHERE subm_id = {subm_id}")\
+                                .fetch()
+        elif item == 'review':
+            result = cur.execute(f"SELECT COUNT(*) FROM {self.TB_CHAIN} WHERE subm_id = {subm_id} " +\
+                                "AND review_received != NULL").fetch()
+        elif item == 'evaluation':
+            result = cur.execute(f"SELECT COUNT(*) FROM {self.TB_CHAIN} WHERE subm_id = {subm_id} " +\
+                                "AND eval_received != NULL").fetch()
+        else:
+            print("ERROR, UNEXPECTED ITEM")
+        con.commit()
+        con.close()
+        # result is a list of tuples, the tuples are columns corresponds to the header
+        count = result[0][0]
+        return count
         
         
 #--------------------------------------------------
@@ -420,7 +459,7 @@ class Database:
         """
             A function used to view table's information
         """
-        con = sqlite3.connect(self.DATABASE)
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f"SELECT * FROM {table_name}")
         result = cur.fetchall()
@@ -431,7 +470,7 @@ class Database:
 #--------------------------------------------------
     def export_table(self, table, filename):
         """
-            Provided:
+            Param:
                 table: a string of table name. (e.g. "chain")
                 filename: a string of filename, where the table in database
                         will be exported to.
@@ -442,7 +481,7 @@ class Database:
                 True on success, False otherwise
         """
         try:
-            con = sqlite3.connect(self.DATABASE)
+            con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
             cur = con.cursor()
             cur.execute(f"SELECT * FROM '{table}'")
             result = cur.fetchall()

@@ -260,9 +260,9 @@ class Dashboard:
         self.submitted_lb = QtWidgets.QLabel(self.summary_tab)
         self.submitted_lb.setObjectName("submitted_lb")
         self.gridLayout_2.addWidget(self.submitted_lb, 2, 1, 1, 1)
-        self.dl_due_lb = QtWidgets.QLabel(self.summary_tab)
-        self.dl_due_lb.setObjectName("dl_due_lb")
-        self.gridLayout_2.addWidget(self.dl_due_lb, 1, 1, 1, 1)
+        self.ddl_due_lb = QtWidgets.QLabel(self.summary_tab)
+        self.ddl_due_lb.setObjectName("ddl_due_lb")
+        self.gridLayout_2.addWidget(self.ddl_due_lb, 1, 1, 1, 1)
         self.deadline_comb = QtWidgets.QComboBox(self.summary_tab)
         self.deadline_comb.setObjectName("deadline_comb")
         self.gridLayout_2.addWidget(self.deadline_comb, 0, 1, 1, 1)
@@ -342,7 +342,7 @@ class Dashboard:
         self.label_15.setText(_translate("MainWindow", "From:"))
         self.label_6.setText(_translate("MainWindow", "Submitted"))
         self.submitted_lb.setText(_translate("MainWindow", "0/40"))
-        self.dl_due_lb.setText(_translate("MainWindow", "04/3/22"))
+        self.ddl_due_lb.setText(_translate("MainWindow", "04/3/22"))
         self.label_2.setText(_translate("MainWindow", "Current Deadline:"))
         self.label_5.setText(_translate("MainWindow", "Due Date:"))
         self.label_4.setText(_translate("MainWindow", "Students Total"))
@@ -393,9 +393,20 @@ class Dashboard:
             self.pushButton.setStyleSheet("color: rgb(255, 43, 32);") # red
 
     def update_students_total(self):
-        total = self.db.get_subscriber_total()
-        self.student_total_lb.setText(f'{total}')
+        student_total = self.db.get_subscriber_total()
+        self.student_total_lb.setText(f'{student_total}')
 
+    def update_ddl_panel(self, deadline_item):
+        name, id = deadline_item.split()
+        due_date = self.db.get_ddl_by_id(id, name)
+        self.ddl_due_lb.setText(f'{due_date}')
+        if name == 'submission':
+            submitted_lb_text = f'{self.db.get_num_item_by_id(id, name)}/{self.db.get_subscriber_total()}'
+        elif name == 'review':
+            submitted_lb_text = f'{self.db.get_num_item_by_id(id, name)}/{self.db.get_subscriber_total() * 3}'
+        elif name == 'evaluation':
+            submitted_lb_text = f'{self.db.get_num_item_by_id(id, name)}/{self.db.get_subscriber_total() * 3}'
+        self.submitted_lb.setText(submitted_lb_text)
 
     def show(self):
         self.widget.show()
