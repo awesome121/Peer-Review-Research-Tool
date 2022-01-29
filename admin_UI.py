@@ -1,13 +1,16 @@
 # Created by: PyQt5 UI code generator 5.15.6
+from sqlite3 import DatabaseError
 import time
 from tokenize import Triple
 from PyQt5 import QtCore, QtGui, QtWidgets
+import database
 
 import sys
 
 class Controller:
     def __init__(self, app, has_account) -> None:
         self.app = app
+        self.db = database.Database()
         self.qt_app = QtWidgets.QApplication(sys.argv)
         self.dashboard = None
         # print(1, flush=True)
@@ -210,99 +213,159 @@ class Dashboard:
         self.update_conn_status()
         self.widget.show()
 
-    def setupUi(self):
-        self.widget.setObjectName("Dashboard")
-        self.widget.resize(800, 600)
-        self.centralwidget = QtWidgets.QWidget(self.widget)
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(670, 561)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        # Create a tabwidget
-        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 841, 611))
-        self.tabWidget.setObjectName("tabWidget")
-        # Create our first tab
-        self.tab_main = QtWidgets.QWidget()
-        self.tab_main.setObjectName("tab_main")
-        # Create objects for tab_main
-        # Label used to show the current server's connection status
-        self.label_1 = QtWidgets.QLabel(self.tab_main)
-        self.label_1.setGeometry(QtCore.QRect(540, 10, 260, 21))
-        self.label_1.setStyleSheet("font: 18pt \".AppleSystemUIFont\";")
-        self.label_1.setObjectName("label_1")
-        # Label used to show the total submisstions/reviews/ratings for the current deadline
-        self.label_2 = QtWidgets.QLabel(self.tab_main)
-        self.label_2.setGeometry(QtCore.QRect(0, 60, 800, 21))
-        self.label_2.setStyleSheet("font: 18pt \".AppleSystemUIFont\";")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.tab = QtWidgets.QTabWidget(self.centralwidget)
+        self.tab.setObjectName("tab")
+        self.summary_tab = QtWidgets.QWidget()
+        self.summary_tab.setObjectName("summary_tab")
+        self.gridLayout_4 = QtWidgets.QGridLayout(self.summary_tab)
+        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.gridLayout_3 = QtWidgets.QGridLayout()
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.label_16 = QtWidgets.QLabel(self.summary_tab)
+        self.label_16.setObjectName("label_16")
+        self.gridLayout_3.addWidget(self.label_16, 1, 0, 1, 1)
+        self.label_7 = QtWidgets.QLabel(self.summary_tab)
+        self.label_7.setObjectName("label_7")
+        self.gridLayout_3.addWidget(self.label_7, 0, 0, 1, 1)
+        self.conn_status_lb = QtWidgets.QLabel(self.summary_tab)
+        self.conn_status_lb.setObjectName("conn_status_lb")
+        self.gridLayout_3.addWidget(self.conn_status_lb, 0, 1, 1, 1)
+        self.last_conn_from = QtWidgets.QLabel(self.summary_tab)
+        self.last_conn_from.setText("")
+        self.last_conn_from.setObjectName("last_conn_from")
+        self.gridLayout_3.addWidget(self.last_conn_from, 2, 1, 1, 1)
+        self.last_conn_to = QtWidgets.QLabel(self.summary_tab)
+        self.last_conn_to.setText("")
+        self.last_conn_to.setObjectName("last_conn_to")
+        self.gridLayout_3.addWidget(self.last_conn_to, 3, 1, 1, 1)
+        self.label_13 = QtWidgets.QLabel(self.summary_tab)
+        self.label_13.setObjectName("label_13")
+        self.gridLayout_3.addWidget(self.label_13, 3, 0, 1, 1)
+        self.label_15 = QtWidgets.QLabel(self.summary_tab)
+        self.label_15.setObjectName("label_15")
+        self.gridLayout_3.addWidget(self.label_15, 2, 0, 1, 1)
+        self.gridLayout_4.addLayout(self.gridLayout_3, 1, 0, 1, 1)
+        self.gridLayout_2 = QtWidgets.QGridLayout()
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.label_6 = QtWidgets.QLabel(self.summary_tab)
+        self.label_6.setObjectName("label_6")
+        self.gridLayout_2.addWidget(self.label_6, 2, 0, 1, 1)
+        self.submitted_lb = QtWidgets.QLabel(self.summary_tab)
+        self.submitted_lb.setObjectName("submitted_lb")
+        self.gridLayout_2.addWidget(self.submitted_lb, 2, 1, 1, 1)
+        self.dl_due_lb = QtWidgets.QLabel(self.summary_tab)
+        self.dl_due_lb.setObjectName("dl_due_lb")
+        self.gridLayout_2.addWidget(self.dl_due_lb, 1, 1, 1, 1)
+        self.deadline_comb = QtWidgets.QComboBox(self.summary_tab)
+        self.deadline_comb.setObjectName("deadline_comb")
+        self.gridLayout_2.addWidget(self.deadline_comb, 0, 1, 1, 1)
+        self.label_2 = QtWidgets.QLabel(self.summary_tab)
         self.label_2.setObjectName("label_2")
-        self.label_2.setAlignment(QtCore.Qt.AlignLeft)
-        # Label used to show the next due date
-        self.label_3 = QtWidgets.QLabel(self.tab_main)
-        self.label_3.setGeometry(QtCore.QRect(0, 80, 800, 21))
-        self.label_3.setStyleSheet("font: 18pt \".AppleSystemUIFont\";")
-        self.label_3.setObjectName("label_3")
-        # Label used to show the total students
-        self.label_4 = QtWidgets.QLabel(self.tab_main)
-        self.label_4.setGeometry(QtCore.QRect(0, 100, 800, 21))
-        self.label_4.setStyleSheet("font: 18pt \".AppleSystemUIFont\";")
-        self.label_4.setObjectName("label_4")
-        # CombBox which contains "Sbumission/Review/Rating"
-        self.comboBox = QtWidgets.QComboBox(self.tab_main)
-        self.comboBox.setGeometry(QtCore.QRect(80, 0, 111, 51))
-        self.comboBox.setObjectName("comboBox")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        # Label for the CombBox
-        self.label_5 = QtWidgets.QLabel(self.tab_main)
-        self.label_5.setGeometry(QtCore.QRect(0, 10, 81, 21))
-        self.label_5.setStyleSheet("font: 18pt \".AppleSystemUIFont\";")
+        self.gridLayout_2.addWidget(self.label_2, 0, 0, 1, 1)
+        self.label_5 = QtWidgets.QLabel(self.summary_tab)
         self.label_5.setObjectName("label_5")
-        # Binding events to the function
-        self.comboBox.currentTextChanged.connect(self.on_changed_combobox_tab_1)
-        # PushButton. User can click on it and change the server status. (Connected/Disconnected)
-        self.pushButton = QtWidgets.QPushButton(self.tab_main)
-        self.pushButton.setGeometry(QtCore.QRect(600, 471, 120, 51))
-        self.pushButton.setStyleSheet("color: rgb(74, 255, 14);")
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(self.conn_btn_onclick)
-        # Add tab_main to the tabWidget
-        self.tabWidget.addTab(self.tab_main, "")
-        # Create tab_students_details
-        self.tab_students_details = QtWidgets.QWidget()
-        self.tab_students_details.setObjectName("tab_students_details")
-        # Add tab_students_details to the tabWidget
-        self.tabWidget.addTab(self.tab_students_details, "")
-        self.widget.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar()
-        self.statusbar.setObjectName("statusbar")
-        self.widget.setStatusBar(self.statusbar)
+        self.gridLayout_2.addWidget(self.label_5, 1, 0, 1, 1)
+        self.gridLayout_4.addLayout(self.gridLayout_2, 1, 1, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_4 = QtWidgets.QLabel(self.summary_tab)
+        self.label_4.setObjectName("label_4")
+        self.horizontalLayout.addWidget(self.label_4)
+        self.student_total_lb = QtWidgets.QLabel(self.summary_tab)
+        self.student_total_lb.setObjectName("student_total_lb")
+        self.horizontalLayout.addWidget(self.student_total_lb)
+        self.gridLayout_4.addLayout(self.horizontalLayout, 2, 1, 1, 1)
+        self.tab.addTab(self.summary_tab, "")
+        self.students_tab = QtWidgets.QWidget()
+        self.students_tab.setObjectName("students_tab")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.students_tab)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
+        self.add_btn = QtWidgets.QPushButton(self.students_tab)
+        self.add_btn.setObjectName("add_btn")
+        self.gridLayout.addWidget(self.add_btn, 2, 2, 1, 1)
+        self.import_btn = QtWidgets.QPushButton(self.students_tab)
+        self.import_btn.setObjectName("import_btn")
+        self.gridLayout.addWidget(self.import_btn, 0, 1, 1, 1)
+        self.search_comb = QtWidgets.QComboBox(self.students_tab)
+        self.search_comb.setEditable(True)
+        self.search_comb.setCurrentText("")
+        self.search_comb.setObjectName("search_comb")
+        self.search_comb.addItem("")
+        self.search_comb.addItem("")
+        self.search_comb.addItem("")
+        self.gridLayout.addWidget(self.search_comb, 0, 2, 1, 1)
+        self.remove_btn = QtWidgets.QPushButton(self.students_tab)
+        self.remove_btn.setStyleSheet("color: rgb(255, 54, 53);")
+        self.remove_btn.setObjectName("remove_btn")
+        self.gridLayout.addWidget(self.remove_btn, 3, 2, 1, 1)
+        self.student_detail_tb = QtWidgets.QTableWidget(self.students_tab)
+        self.student_detail_tb.setObjectName("student_detail_tb")
+        self.student_detail_tb.setColumnCount(0)
+        self.student_detail_tb.setRowCount(0)
+        self.gridLayout.addWidget(self.student_detail_tb, 1, 1, 1, 2)
+        self.verticalLayout.addLayout(self.gridLayout)
+        self.tab.addTab(self.students_tab, "")
+        self.deadlines_tab = QtWidgets.QWidget()
+        self.deadlines_tab.setObjectName("deadlines_tab")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.deadlines_tab)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.deadline_tb = QtWidgets.QTableWidget(self.deadlines_tab)
+        self.deadline_tb.setObjectName("deadline_tb")
+        self.deadline_tb.setColumnCount(0)
+        self.deadline_tb.setRowCount(0)
+        self.verticalLayout_3.addWidget(self.deadline_tb)
+        self.tab.addTab(self.deadlines_tab, "")
+        self.verticalLayout_2.addWidget(self.tab)
+        MainWindow.setCentralWidget(self.centralwidget)
 
-        self.retranslateUi(self.widget)
-        self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(self.widget)
-        
-    def retranslateUi(self, dashboard):
+        self.retranslateUi(MainWindow)
+        self.tab.setCurrentIndex(2)
+        self.search_comb.setCurrentIndex(-1)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        dashboard.setWindowTitle(_translate("Dashboard", "Dashboard"))
-        self.label_1.setText(_translate("Dashboard", f"Current Status: {self.connection_status}"))
-        self.label_2.setText(_translate("Dashboard", f"Students submission submitted for current deadline: {self.total_submission}"))
-        self.label_3.setText(_translate("Dashboard", f"Next Due Date: {self.next_due_date}"))
-        self.label_4.setText(_translate("Dashboard", f"Total Students: {self.total_students}"))
-        self.comboBox.setItemText(0, _translate("Dashboard", "Submission"))
-        self.comboBox.setItemText(1, _translate("Dashboard", "Review"))
-        self.comboBox.setItemText(2, _translate("Dashboard", "Rating"))
-        self.label_5.setText(_translate("Dashboard", "Deadline:"))
-
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_main), _translate("Dashboard", "Main"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_students_details), _translate("Dashboard", "Students Details"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label_16.setText(_translate("MainWindow", "Last Connection:"))
+        self.label_7.setText(_translate("MainWindow", "Current Status:"))
+        self.conn_status_lb.setText(_translate("MainWindow", "Connected"))
+        self.label_13.setText(_translate("MainWindow", "To:"))
+        self.label_15.setText(_translate("MainWindow", "From:"))
+        self.label_6.setText(_translate("MainWindow", "Submitted"))
+        self.submitted_lb.setText(_translate("MainWindow", "0/40"))
+        self.dl_due_lb.setText(_translate("MainWindow", "04/3/22"))
+        self.label_2.setText(_translate("MainWindow", "Current Deadline:"))
+        self.label_5.setText(_translate("MainWindow", "Due Date:"))
+        self.label_4.setText(_translate("MainWindow", "Students Total"))
+        self.student_total_lb.setText(_translate("MainWindow", "40"))
+        self.tab.setTabText(self.tab.indexOf(self.summary_tab), _translate("MainWindow", "Summary"))
+        self.add_btn.setText(_translate("MainWindow", "Add a student"))
+        self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
+        self.search_comb.setPlaceholderText(_translate("MainWindow", "Type email to search"))
+        self.search_comb.setItemText(0, _translate("MainWindow", "Tony"))
+        self.search_comb.setItemText(1, _translate("MainWindow", "Ai"))
+        self.search_comb.setItemText(2, _translate("MainWindow", "Sushi"))
+        self.remove_btn.setText(_translate("MainWindow", "Remove student"))
+        self.tab.setTabText(self.tab.indexOf(self.students_tab), _translate("MainWindow", "Students"))
+        self.tab.setTabText(self.tab.indexOf(self.deadlines_tab), _translate("MainWindow", "Deadlines"))
     
-    def on_changed_combobox_tab_1(self, selected_value):
-        print("Combbox changed", selected_value)
-        if selected_value == "Submission":
-            self.label_2.setText(f"Students submissions submitted for current deadline: {self.total_submission}")
-        elif selected_value == "Review":
-            self.label_2.setText(f"Students reviews submitted for current deadline: {self.total_review}")
-        elif selected_value == "Rating":
-            self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")
+    # def on_changed_combobox_tab_1(self, selected_value):
+    #     print("Combbox changed", selected_value)
+    #     if selected_value == "Submission":
+    #         self.label_2.setText(f"Students submissions submitted for current deadline: {self.total_submission}")
+    #     elif selected_value == "Review":
+    #         self.label_2.setText(f"Students reviews submitted for current deadline: {self.total_review}")
+    #     elif selected_value == "Rating":
+    #         self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")/
 
     def conn_btn_onclick(self):
         print("click button, popping dialog")
@@ -328,6 +391,11 @@ class Dashboard:
             self.label_1.setStyleSheet("color: rgb(20, 102, 26);font: 18pt \".AppleSystemUIFont\";")
             self.pushButton.setText("Disconnect")
             self.pushButton.setStyleSheet("color: rgb(255, 43, 32);") # red
+
+    def update_students_total(self):
+        total = self.db.get_subscriber_total()
+        self.student_total_lb.setText(f'{total}')
+
 
     def show(self):
         self.widget.show()

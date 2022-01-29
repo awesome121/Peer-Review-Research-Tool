@@ -16,9 +16,9 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tab">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="summary_tab">
        <attribute name="title">
@@ -42,21 +42,21 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="conn_status_lb">
             <property name="text">
              <string>Connected</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="last_conn_from">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="last_conn_to">
             <property name="text">
              <string/>
             </property>
@@ -88,14 +88,14 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="submitted_lb">
             <property name="text">
              <string>0/40</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="dl_due_lb">
             <property name="text">
              <string>04/3/22</string>
             </property>
@@ -130,7 +130,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="student_total_lb">
             <property name="text">
              <string>40</string>
             </property>
@@ -148,21 +148,21 @@
         <item>
          <layout class="QGridLayout" name="gridLayout">
           <item row="2" column="2">
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="add_btn">
             <property name="text">
              <string>Add a student</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="import_btn">
             <property name="text">
              <string>Import Students From CSV</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="search_comb">
             <property name="editable">
              <bool>true</bool>
             </property>
@@ -193,7 +193,7 @@
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="remove_btn">
             <property name="styleSheet">
              <string notr="true">color: rgb(255, 54, 53);</string>
             </property>
@@ -203,7 +203,7 @@
            </widget>
           </item>
           <item row="1" column="1" colspan="2">
-           <widget class="QTableWidget" name="StudentDetails"/>
+           <widget class="QTableWidget" name="student_detail_tb"/>
           </item>
          </layout>
         </item>
@@ -215,7 +215,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QTableWidget" name="deadline"/>
+         <widget class="QTableWidget" name="deadline_tb"/>
         </item>
        </layout>
       </widget>
