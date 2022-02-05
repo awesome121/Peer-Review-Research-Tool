@@ -209,7 +209,7 @@ class Dashboard:
         self.total_students = None
         self.server_email_address = None
         self.connection_status = False
-        self.setupUi()
+        self.setupUi(self.widget)
         self.update_conn_status()
         self.widget.show()
 
@@ -379,18 +379,18 @@ class Dashboard:
         if not self.controller.has_valid_token():
             self.connection_status = "Disconnected"
             # If disconnected. Token exist
-            self.label_1.setText(f"Current Status: {self.connection_status}")
-            self.pushButton.setText("Connect")
-            self.label_1.setStyleSheet("color: rgb(255, 43, 32);font: 18pt \".AppleSystemUIFont\";")
-            self.pushButton.setStyleSheet("color: rgb(20, 102, 26);")
+            self.conn_status_lb.setText(f"{self.connection_status}")
+            # self.pushButton.setText("Connect")
+            self.conn_status_lb.setStyleSheet("color: rgb(255, 43, 32);font: 18pt \".AppleSystemUIFont\";")
+            # self.pushButton.setStyleSheet("color: rgb(20, 102, 26);")
         elif self.controller.has_valid_token():
             # If connected
             self.connection_status = "Connected"
-            self.label_1.setText(f"Current Status: {self.connection_status}")
-            self.label_1.setGeometry(QtCore.QRect(540, 10, 200, 21))
-            self.label_1.setStyleSheet("color: rgb(20, 102, 26);font: 18pt \".AppleSystemUIFont\";")
-            self.pushButton.setText("Disconnect")
-            self.pushButton.setStyleSheet("color: rgb(255, 43, 32);") # red
+            self.conn_status_lb.setText(f"{self.connection_status}")
+            self.conn_status_lb.setGeometry(QtCore.QRect(540, 10, 200, 21))
+            self.conn_status_lb.setStyleSheet("color: rgb(20, 102, 26);font: 18pt \".AppleSystemUIFont\";")
+            # self.pushButton.setText("Disconnect")
+            # self.pushButton.setStyleSheet("color: rgb(255, 43, 32);") # red
 
     def update_students_total(self):
         student_total = self.db.get_subscriber_total()
