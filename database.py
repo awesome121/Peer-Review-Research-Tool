@@ -158,7 +158,8 @@ class Database:
         with open(input_csv_file, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
         lines = [(line,) for line in lines]
-        cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
+        cur.executemany(f"INSERT OR REPLACE INTO '{self.TB_EMAIL_LIST}' (address) values (?)",\
+                        lines)
         con.commit()
         con.close()
 
@@ -453,6 +454,14 @@ class Database:
         # result is a list of tuples, the tuples are columns corresponds to the header
         count = result[0][0]
         return count
+
+    def get_email_addr(self):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST}").fetchall()
+        con.close()
+        result = [item[0] for item in result]
+        return result
         
         
 #--------------------------------------------------

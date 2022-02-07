@@ -41,38 +41,38 @@ import database, os, time
 #                 mail = 
 
 
-import math
-NUM_SQL_COMMANDS = 100000
+# import math
+# NUM_SQL_COMMANDS = 100000
 
-def write():
-        # time.sleep(5)
-        for _ in range(NUM_SQL_COMMANDS):
-                # print(_, flush=True)
-                con = sqlite3.connect("database.db", timeout=60)
-                cur = con.cursor()
-                cur.execute(f"INSERT INTO chain " +\
-                "('msg_id (subm)', author, subm_id, subm_received, " +\
-                "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
-                "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
-                f" values ({_},NULL,NULL,NULL" + ", NULL" * 9 + ")")
-                con.commit()
-                con.close()
-        print('--')
-        print(threading.get_ident())
+# def write():
+#         # time.sleep(5)
+#         for _ in range(NUM_SQL_COMMANDS):
+#                 # print(_, flush=True)
+#                 con = sqlite3.connect("database.db", timeout=60)
+#                 cur = con.cursor()
+#                 cur.execute(f"INSERT INTO chain " +\
+#                 "('msg_id (subm)', author, subm_id, subm_received, " +\
+#                 "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
+#                 "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
+#                 f" values ({_},NULL,NULL,NULL" + ", NULL" * 9 + ")")
+#                 con.commit()
+#                 con.close()
+#         print('--')
+#         print(threading.get_ident())
 
-def read():
-        for i in range(NUM_SQL_COMMANDS):
-                con = sqlite3.connect("database.db", timeout=60)
-                cur = con.cursor()
-                cur.execute(f"select * from chain where 'msg_id (subm)' = 1 ")
-                con.commit()
-                con.close()
+# def read():
+#         for i in range(NUM_SQL_COMMANDS):
+#                 con = sqlite3.connect("database.db", timeout=60)
+#                 cur = con.cursor()
+#                 cur.execute(f"select * from chain where 'msg_id (subm)' = 1 ")
+#                 con.commit()
+#                 con.close()
 
-a = time.perf_counter()
-for _ in range(1):
-        os.system("rm database.db")
-        db = database.Database()
-        db.create_database()
+# a = time.perf_counter()
+# for _ in range(1):
+#         os.system("rm database.db")
+#         db = database.Database()
+#         db.create_database()
 
         # threads = []
         # for _ in range(1):
@@ -82,17 +82,17 @@ for _ in range(1):
         # for t in threads:
         #         t.join()
 
-        threads = []
-        for i in range(4):
-                threads.append(threading.Thread(target=write))
-                threads.append(threading.Thread(target=read))
+#         threads = []
+#         for i in range(4):
+#                 threads.append(threading.Thread(target=write))
+#                 threads.append(threading.Thread(target=read))
 
-        for t in threads:
-                t.start()
-        for t in threads:
-                t.join()
-b = time.perf_counter()
-print(b-a)
+#         for t in threads:
+#                 t.start()
+#         for t in threads:
+#                 t.join()
+# b = time.perf_counter()
+# print(b-a)
 # write_t = threading.Thread(target=c)
 
 # read_t.start()
@@ -101,5 +101,12 @@ print(b-a)
 # read_t.join()
 # write_t.join()
         
+
+con = sqlite3.connect('database.db')
+cur = con.cursor()
+result  = cur.execute("SELECT * FROM email_list").fetchall()
+print(result)
+con.commit()
+con.close()
 
 
