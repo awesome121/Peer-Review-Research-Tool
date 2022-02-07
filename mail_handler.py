@@ -111,7 +111,7 @@ class MailHandler:
                 
             elif self.parser_.is_review(subject):
                 if self.db_.store_review(convo_id, date):
-                    author = self.db_.find_author_by_convo_id(convo_id)
+                    author = self.db_.get_author_by_convo_id(convo_id)
                     new_conv_id, date_sent = self.send_req(self.parser_.get_eval_req(), \
                                                             mail, author)
                     self.db_.store_eval_req(convo_id, new_conv_id, date_sent)

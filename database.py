@@ -28,9 +28,6 @@ class Database:
         """
             Set constant file names and parameters
         """
-        # Provided files:
-        self.EMAIL_LIST = "email_list.csv"
-        self.SCHEDULE = "schedule.csv"
         # Database generated file:
         self.DATABASE = "database.db"
         # tables
@@ -38,6 +35,7 @@ class Database:
         self.TB_SCHEDULE = "schedule"
         self.TB_NUM_REVIEW = "num_review"
         self.TB_CHAIN = "chain"
+        self.TB_CONNECTION = "connection"
         # Database constants:
         self.CON_TIMEOUT = 60 # seconds
         self.MAX_SUBMISSION = 6
@@ -81,10 +79,6 @@ class Database:
         """
         cur = con.cursor()
         cur.execute(f"CREATE TABLE '{self.TB_EMAIL_LIST}' (address text)")
-        with open(self.EMAIL_LIST, encoding='utf-8-sig') as file:
-            lines = file.read().splitlines()
-        lines = [(line,) for line in lines]
-        cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
         con.commit()
 
     def init_schedule(self, con):
@@ -100,12 +94,6 @@ class Database:
         cur.execute(f"CREATE TABLE '{self.TB_SCHEDULE}' (subm_id integer, " +\
             "start_date text, 'end_date (subm)' text, is_distributed integer, " +\
             "'end_date (review)' text, 'end_date (eval)' text)")
-        with open(self.SCHEDULE, encoding='utf-8-sig') as file:
-            lines = file.read().splitlines()
-        lines = [tuple(line.split(',')) for line in lines]
-        cur.executemany(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
-                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
-                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", lines)
         con.commit()
 
     def init_num_review(self, con):
@@ -134,8 +122,6 @@ class Database:
                 chain table in database.db
         """
         cur = con.cursor()
-        cur.execute(f"SELECT * from {self.TB_EMAIL_LIST}")
-        addresses = cur.fetchall()
         # header 3 + 4 + 5
         cur.execute(f"CREATE TABLE {self.TB_CHAIN} "+\
         "('msg_id (subm)' text, author text, subm_id integer, subm_received text, " +\
@@ -145,46 +131,61 @@ class Database:
             "eval_req_sent text, eval_received text)")
         con.commit()
 
+    def init_connection(self, con):
+        """
+           ===This function can be called only on initialising database===
+            Param:
+                connection to database.db
+            Generates:
+                connection history table in database.db
+        """
+        cur = con.cursor()
+        cur.execute(f"CREATE TABLE {self.TB_CONNECTION} " + "start_date integer, end_date integer")
+        con.commit()
+
 #--------------------------------------------------
-    def update_emaillist(self):
+    def update_email_list(self, input_csv_file):
         """
-            This function will be called by monitor_emaillist once emaillist.csv
-            has been changed and self.TB_EMAIL_LIST will be updated.
+        Provided:
+            A csv file which contains a list of email.
+        Output:
+            Updated email list table
         """
-        pass
-        # #Establish a connection
-        # con = sqlite3.connect(self.EMAIL_LST_MODIFIED_DATE, timeout=self.CON_TIMEOUT)
-        # #Get the cursor
-        # cur = con.cursor()
-        # #Sql commands
+        # Establish a connection
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        # Get the cursor
+        cur = con.cursor()
+        with open(input_csv_file, encoding='utf-8-sig') as file:
+            lines = file.read().splitlines()
+        lines = [(line,) for line in lines]
+        cur.executemany(f"INSERT INTO '{self.TB_EMAIL_LIST}' (address) values (?)", lines)
+        con.commit()
+        con.close()
 
-        # con.commit()
-        # con.close()
-        
+    def update_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
+        # Establish a connection
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        # Get the cursor
+        cur = con.cursor()
 
-    def monitor_emaillist(self):
-        """
-            This function will constantly monitoring emaillist.csv.
-            If emaillist.csv has been changed, update_emaillist will be called.
-        """
-        # If the last modified date has been changed.
-        if os.path.getmtime(self.EMAIL_LIST) != self.EMAIL_LST_MODIFIED_DATE:
-            # Update self.TB_EMAIL_LIST
-            self.update_emaillist()
-            # Store the lastest last modified date
-            self.EMAIL_LST_MODIFIED_DATE = os.path.getmtime(self.EMAIL_LIST)
+        cur.execute(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
+                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", (subm_id,\
+                             start_date, end_date, end_date_review, end_date_eval))
+        con.commit()
+        con.close()
 
-    def update_schedule(self):
-        pass
-        # #Establish a connection
-        # con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        # #Get the cursor
-        # cur = con.cursor()
-        # #Sql commands
+    def update_connection(self):
+        # Establish a connection
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        # Get the cursor
+        cur = con.cursor()
 
-        # con.commit()
-        # con.close()
-        
+        cur.execute(f"UPDATE '{self.TB_CONNECTION}' (subm_id, start_date, " +\
+                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", )
+        con.commit()
+        con.close()
 
     def monitor_schedule(self):
         """
@@ -410,7 +411,7 @@ class Database:
         self.view_table_information('chain')
         return True
 
-    def find_author_by_convo_id(self, review_convo_id):
+    def get_author_by_convo_id(self, review_convo_id):
         """
             Param:
                 eval_convo_id: initialised when evaluation request was sent
