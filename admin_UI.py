@@ -1,8 +1,4 @@
 # Created by: PyQt5 UI code generator 5.15.6
-from sqlite3 import DatabaseError
-import time
-from tokenize import Triple
-from turtle import onclick
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
 
