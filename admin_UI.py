@@ -317,6 +317,7 @@ class Dashboard:
         self.remove_btn.setObjectName("remove_btn")
         self.gridLayout.addWidget(self.remove_btn, 3, 2, 1, 1)
         self.student_detail_tb = QtWidgets.QTableWidget(1, 1, self.students_tab)
+        self.student_detail_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.student_detail_tb.setObjectName("student_detail_tb")
         self.student_detail_tb.setHorizontalHeaderLabels(('Student Email Address',))
         # self.student_detail_tb.setColumnWidth(300, 300)
@@ -363,6 +364,7 @@ class Dashboard:
         # add onclick listener
         self.import_btn.clicked.connect(self.import_btn_onclick)
         self.conn_btn.clicked.connect(self.conn_btn_onclick)
+        self.remove_btn.clicked.connect(self.remove_student_btn_onclick)
         # update tables
         self.update_student_detail_tb()
 
@@ -404,6 +406,17 @@ class Dashboard:
                                     , QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 self.controller.db.update_email_list(filename)
+                self.update_student_detail_tb()
+
+    def remove_student_btn_onclick(self):
+        idxs = self.student_detail_tb.selectedIndexes()
+        if idxs:
+            buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Message Box', "Are you sure you want to remove selected students?"\
+                                    , QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            if buttonReply == QtWidgets.QMessageBox.Yes:
+                rows = [idx.data() for idx in idxs]
+                self.controller.db.remove_email_addr(rows)
+                self.update_student_detail_tb()
 
     def on_changed_combobox_tab_1(self, selected_value):
         print("Combbox changed", selected_value)
@@ -441,7 +454,7 @@ class Dashboard:
             # self.conn_btn.setStyleSheet("color: rgb(255, 43, 32);") # red
 
     def update_student_detail_tb(self):
-        addresses = self.controller.db.get_email_addr()
+        addresses = self.controller.db.get_all_email_addr()
         self.student_detail_tb.clearContents()
         self.student_detail_tb.setRowCount(len(addresses))
         for i in range(len(addresses)):

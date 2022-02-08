@@ -455,14 +455,21 @@ class Database:
         count = result[0][0]
         return count
 
-    def get_email_addr(self):
+    def get_all_email_addr(self):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST}").fetchall()
         con.close()
         result = [item[0] for item in result]
         return result
-        
+
+    def remove_email_addr(self, addresses):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        for addr in addresses:
+            cur.execute(f"DELETE FROM {self.TB_EMAIL_LIST} WHERE address = '{addr}' ")
+        con.commit()
+        con.close()
         
 #--------------------------------------------------
     def view_table_information(self, table_name):
