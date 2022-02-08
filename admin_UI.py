@@ -1,4 +1,6 @@
 # Created by: PyQt5 UI code generator 5.15.6
+from audioop import add
+from telnetlib import STATUS
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
 
@@ -363,13 +365,14 @@ class Dashboard:
         self.import_btn.clicked.connect(self.import_btn_onclick)
         self.conn_btn.clicked.connect(self.conn_btn_onclick)
         self.remove_btn.clicked.connect(self.remove_student_btn_onclick)
+        self.add_btn.clicked.connect(self.add_btn_onclick)
         # update tables
         self.update_student_detail_tb()
 
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Dashboard"))
         self.label_4.setText(_translate("MainWindow", "Students Total"))
         self.student_total_lb.setText(_translate("MainWindow", "40"))
         self.label_2.setText(_translate("MainWindow", "Current Deadline:"))
@@ -388,7 +391,7 @@ class Dashboard:
         self.search_comb.setItemText(0, _translate("MainWindow", "Tony"))
         self.search_comb.setItemText(1, _translate("MainWindow", "Ai"))
         self.search_comb.setItemText(2, _translate("MainWindow", "Sushi"))
-        self.remove_btn.setText(_translate("MainWindow", "Remove student"))
+        self.remove_btn.setText(_translate("MainWindow", "Remove selected student(s)"))
         self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
         self.add_btn.setText(_translate("MainWindow", "Add a student"))
         self.tab.setTabText(self.tab.indexOf(self.students_tab), _translate("MainWindow", "Students"))
@@ -400,16 +403,42 @@ class Dashboard:
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self.widget,"Open File", "",\
                                                     "CSV Files (*.csv)")
         if filename:
-            buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Message Box', "Are you sure you want to upload this csv file?"\
+            buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Message Box', \
+                                    "Are you sure you want to insert students from this csv file?"\
                                     , QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 self.controller.db.update_email_list(filename)
                 self.update_student_detail_tb()
 
+    def add_btn_onclick(self):
+        input_text, ok = QtWidgets.QInputDialog.getText(self.widget, "", "Please type student's email address")
+        while ok:
+            input_text = input_text.strip()
+            addr = input_text.split('@')
+            if len(addr) == 2 and addr[0] != '' and addr[1] != '':
+                if self.controller.db.add_addr(input_text):
+                    QtWidgets.QMessageBox.information(self.widget, '', \
+                                    f"'{input_text}' is successfully added")
+                else:
+                    QtWidgets.QMessageBox.information(self.widget, '', \
+                                    f"'{input_text}' already exists")
+                ok = False
+            else:
+                QtWidgets.QMessageBox.warning(self.widget, '', \
+                                    "Not a valid email address")
+                input_text, ok = QtWidgets.QInputDialog.getText(self.widget, \
+                                "", "Please type student's email address", text=input_text)
+        self.update_student_detail_tb()
+
+
     def remove_student_btn_onclick(self):
         idxs = self.student_detail_tb.selectedIndexes()
         if idxs:
-            buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Message Box', "Are you sure you want to remove selected students?"\
+            msg = f"Are you sure you want to remove {len(idxs)} selected student(s)?\n\n"
+            for idx in idxs[:5]:
+                msg += idx.data() + "\n"
+            msg += "........." if len(idxs) > 5 else ''
+            buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Message Box', msg
                                     , QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 rows = [idx.data() for idx in idxs]

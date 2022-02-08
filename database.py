@@ -14,9 +14,7 @@
 """
 
 
-import csv, sqlite3, sys, os
-from socket import timeout
-from time import time
+import csv, sqlite3, os
 
 class Database:
     """
@@ -462,6 +460,27 @@ class Database:
         con.close()
         result = [item[0] for item in result]
         return result
+
+    def add_addr(self, addr):
+        """
+            Param:
+                addr: a student's email address
+            Return:
+                True if successfully inserted, False otherwise
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address = '{addr}'")\
+                            .fetchall()
+        result = [item[0] for item in result]
+        if result:
+            con.close()
+            return False
+        else:
+            result = cur.execute(f"INSERT INTO {self.TB_EMAIL_LIST} (address) values ('{addr}')")
+            con.commit()
+            con.close()
+            return True
 
     def remove_email_addr(self, addresses):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
