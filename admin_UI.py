@@ -320,6 +320,8 @@ class Dashboard:
         self.student_detail_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.student_detail_tb.setObjectName("student_detail_tb")
         self.student_detail_tb.setHorizontalHeaderLabels(('Student Email Address',))
+        self.student_detail_tb.horizontalHeader().setSectionResizeMode(0, \
+                                            QtWidgets.QHeaderView.Stretch)
         # self.student_detail_tb.setColumnWidth(300, 300)
         self.gridLayout.addWidget(self.student_detail_tb, 1, 1, 1, 2)
         self.import_btn = QtWidgets.QPushButton(self.students_tab)
