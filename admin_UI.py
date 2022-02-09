@@ -1,4 +1,5 @@
 # Created by: PyQt5 UI code generator 5.15.6
+from re import T
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
 
@@ -305,8 +306,9 @@ class Dashboard:
         self.search_lineedit.setObjectName("search_lineedit")
         self.gridLayout.addWidget(self.search_lineedit, 0, 2, 1, 1)
         self.remove_btn = QtWidgets.QPushButton(self.students_tab)
-        self.remove_btn.setStyleSheet("color: rgb(255, 54, 53);")
+        self.remove_btn.setStyleSheet("color: rgb(102, 0, 0);") # disable color
         self.remove_btn.setObjectName("remove_btn")
+        self.remove_btn.setDisabled(True)
         self.gridLayout.addWidget(self.remove_btn, 3, 2, 1, 1)
         self.student_detail_tb = QtWidgets.QTableWidget(1, 1, self.students_tab)
         self.student_detail_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -360,6 +362,7 @@ class Dashboard:
         self.remove_btn.clicked.connect(self.remove_student_btn_onclick)
         self.add_btn.clicked.connect(self.add_btn_onclick)
         self.search_lineedit.textEdited.connect(self.search_lineedit_onedited)
+        self.student_detail_tb.itemSelectionChanged.connect(self.student_detail_tb_onselect)
         # update tables
         self.update_student_detail_tb()
 
@@ -414,16 +417,22 @@ class Dashboard:
                 if self.controller.db.add_addr(input_text):
                     QtWidgets.QMessageBox.information(self.widget, '', \
                                     f"'{input_text}' is successfully added")
+                    self.update_student_detail_tb()
                 else:
                     QtWidgets.QMessageBox.information(self.widget, '', \
                                     f"'{input_text}' already exists")
+                self.student_detail_tb.clearSelection()
+                self.student_detail_tb.update()
+                items = self.student_detail_tb.findItems(input_text, QtCore.Qt.MatchExactly)
+                self.student_detail_tb.scrollToItem(items[0], hint=QtWidgets.QAbstractItemView.PositionAtCenter)
+                items[0].setSelected(True)
                 ok = False
             else:
                 QtWidgets.QMessageBox.warning(self.widget, '', \
                                     "Not a valid email address")
                 input_text, ok = QtWidgets.QInputDialog.getText(self.widget, \
                                 "", "Please type student's email address", text=input_text)
-        self.update_student_detail_tb()
+        
 
 
     def remove_student_btn_onclick(self):
@@ -439,6 +448,20 @@ class Dashboard:
                 rows = [idx.data() for idx in idxs]
                 self.controller.db.remove_email_addr(rows)
                 self.update_student_detail_tb()
+
+    def student_detail_tb_onselect(self):
+        idxs = self.student_detail_tb.selectedIndexes()
+        if len(idxs) == 0:
+            self.remove_btn.setEnabled(False)
+            self.remove_btn.setStyleSheet("color: rgb(102, 0, 0);") # enable color
+            self.remove_btn.setText(f"Remove selected student(s)")
+        else:
+            self.remove_btn.setEnabled(True)
+            self.remove_btn.setStyleSheet("color: rgb(255, 54, 53);") # enable color
+            if len(idxs) == 1:
+                self.remove_btn.setText(f"Remove 1 selected student")
+            else:
+                self.remove_btn.setText(f"Remove {len(idxs)} selected students")
 
     def on_changed_combobox_tab_1(self, selected_value):
         print("Combbox changed", selected_value)
