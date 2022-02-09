@@ -1,6 +1,4 @@
 # Created by: PyQt5 UI code generator 5.15.6
-from audioop import add
-from telnetlib import STATUS
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
 
@@ -302,14 +300,10 @@ class Dashboard:
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.search_comb = QtWidgets.QComboBox(self.students_tab)
-        self.search_comb.setEditable(True)
-        self.search_comb.setCurrentText("")
-        self.search_comb.setObjectName("search_comb")
-        self.search_comb.addItem("")
-        self.search_comb.addItem("")
-        self.search_comb.addItem("")
-        self.gridLayout.addWidget(self.search_comb, 0, 2, 1, 1)
+        self.search_lineedit = QtWidgets.QLineEdit(self.students_tab)
+        self.search_lineedit.setPlaceholderText("Type student's email to search")
+        self.search_lineedit.setObjectName("search_lineedit")
+        self.gridLayout.addWidget(self.search_lineedit, 0, 2, 1, 1)
         self.remove_btn = QtWidgets.QPushButton(self.students_tab)
         self.remove_btn.setStyleSheet("color: rgb(255, 54, 53);")
         self.remove_btn.setObjectName("remove_btn")
@@ -358,14 +352,14 @@ class Dashboard:
 
         self.retranslateUi(MainWindow)
         self.tab.setCurrentIndex(0)
-        self.search_comb.setCurrentIndex(-1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        # add onclick listener
+        # add listener
         self.import_btn.clicked.connect(self.import_btn_onclick)
         self.conn_btn.clicked.connect(self.conn_btn_onclick)
         self.remove_btn.clicked.connect(self.remove_student_btn_onclick)
         self.add_btn.clicked.connect(self.add_btn_onclick)
+        self.search_lineedit.textEdited.connect(self.search_lineedit_onedited)
         # update tables
         self.update_student_detail_tb()
 
@@ -387,10 +381,7 @@ class Dashboard:
         self.conn_status_lb.setText(_translate("MainWindow", "Connected"))
         self.conn_btn.setText(_translate("MainWindow", "Connect"))
         self.tab.setTabText(self.tab.indexOf(self.summary_tab), _translate("MainWindow", "Summary"))
-        self.search_comb.setPlaceholderText(_translate("MainWindow", "Type email to search"))
-        self.search_comb.setItemText(0, _translate("MainWindow", "Tony"))
-        self.search_comb.setItemText(1, _translate("MainWindow", "Ai"))
-        self.search_comb.setItemText(2, _translate("MainWindow", "Sushi"))
+        self.search_lineedit.setPlaceholderText(_translate("MainWindow", "Type email to search"))
         self.remove_btn.setText(_translate("MainWindow", "Remove selected student(s)"))
         self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
         self.add_btn.setText(_translate("MainWindow", "Add a student"))
@@ -399,6 +390,10 @@ class Dashboard:
         self.pushButton_3.setText(_translate("MainWindow", "New Schedule"))
         self.tab.setTabText(self.tab.indexOf(self.deadlines_tab), _translate("MainWindow", "Deadlines"))
     
+    def search_lineedit_onedited(self):
+        results = self.controller.db.get_email_addr_by(self.search_lineedit.text())
+        self.update_student_detail_tb(results)
+
     def import_btn_onclick(self):
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self.widget,"Open File", "",\
                                                     "CSV Files (*.csv)")
@@ -480,8 +475,9 @@ class Dashboard:
             # self.conn_btn.setText("Disconnect")
             # self.conn_btn.setStyleSheet("color: rgb(255, 43, 32);") # red
 
-    def update_student_detail_tb(self):
-        addresses = self.controller.db.get_all_email_addr()
+    def update_student_detail_tb(self, addresses=None):
+        if not addresses:
+            addresses = self.controller.db.get_all_email_addr()
         self.student_detail_tb.clearContents()
         self.student_detail_tb.setRowCount(len(addresses))
         for i in range(len(addresses)):

@@ -482,6 +482,21 @@ class Database:
             con.close()
             return True
 
+    def get_email_addr_by(self, begin):
+        """
+            Param:
+                begin: beginning string of a student's email address
+            Return:
+                A list of email addresses matched by 'begin'
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address LIKE '{begin}%'")\
+                        .fetchall()
+        con.close()
+        result = [item[0] for item in result]
+        return result
+
     def remove_email_addr(self, addresses):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
