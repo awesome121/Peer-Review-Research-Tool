@@ -64,6 +64,7 @@ class Database:
         self.init_schedule(con)
         self.init_num_review(con)
         self.init_chain(con)
+        self.init_connection(con)
         con.close()
 
     def init_email_list(self, con):

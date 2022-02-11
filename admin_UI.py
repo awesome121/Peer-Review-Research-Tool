@@ -1,22 +1,30 @@
 # Created by: PyQt5 UI code generator 5.15.6
-from re import T
+
 from PyQt5 import QtCore, QtGui, QtWidgets
-import database
+import database, os
 
 import sys
 
 class Controller:
     def __init__(self, app, has_account) -> None:
+        # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+        # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         self.app = app
         self.db = database.Database()
-        self.qt_app = QtWidgets.QApplication(sys.argv)
+        self.qtapp = QtWidgets.QApplication(sys.argv)
+        self.qtapp.setApplicationName("Peer Review Dashboard")
         self.dashboard = None
-        # print(1, flush=True)
         if has_account:
             self.land_on_dashboard()
         else:
             self.land_on_login()
-        sys.exit(self.qt_app.exec())
+        self.set_qtapp_icon()
+        sys.exit(self.qtapp.exec())
+
+    def set_qtapp_icon(self):
+        app_icon = QtGui.QIcon()
+        app_icon.addFile('icons/app-icon.png', QtCore.QSize(256,256))
+        self.qtapp.setWindowIcon(app_icon)
 
     def land_on_login(self):
         self.login_window = LoginWindow(self)
@@ -137,7 +145,7 @@ class LoginDialog:
         self.back_btn = QtWidgets.QPushButton(self.widget)
         self.back_btn.setGeometry(QtCore.QRect(0, 0, 41, 41))
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("left-arrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("icons/left-arrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.back_btn.setIcon(icon1)
         self.back_btn.setIconSize(QtCore.QSize(35, 30))
         self.back_btn.setObjectName("back_btn")
@@ -367,6 +375,13 @@ class Dashboard:
         self.update_student_detail_tb()
 
 
+
+        self.dateeidt = QtWidgets.QDateTimeEdit(self.deadline_tb, calendarPopup=True)
+        self.gridLayout_5.addWidget(self.dateeidt, 0, 0, 1, 1)
+        # self.widget.menuBar().setCornerWidget(self.dateeidt, QtCore.Qt.Corner.TopLeftCorner)
+        self.dateeidt.setDateTime(QtCore.QDateTime.currentDateTime())
+
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Dashboard"))
@@ -384,7 +399,7 @@ class Dashboard:
         self.conn_status_lb.setText(_translate("MainWindow", "Connected"))
         self.conn_btn.setText(_translate("MainWindow", "Connect"))
         self.tab.setTabText(self.tab.indexOf(self.summary_tab), _translate("MainWindow", "Summary"))
-        self.search_lineedit.setPlaceholderText(_translate("MainWindow", "Type email to search"))
+        self.search_lineedit.setPlaceholderText(_translate("MainWindow", "Type email address to search"))
         self.remove_btn.setText(_translate("MainWindow", "Remove selected student(s)"))
         self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
         self.add_btn.setText(_translate("MainWindow", "Add a student"))
@@ -417,10 +432,10 @@ class Dashboard:
                 if self.controller.db.add_addr(input_text):
                     QtWidgets.QMessageBox.information(self.widget, '', \
                                     f"'{input_text}' is successfully added")
-                    self.update_student_detail_tb()
                 else:
                     QtWidgets.QMessageBox.information(self.widget, '', \
                                     f"'{input_text}' already exists")
+                self.update_student_detail_tb()
                 self.student_detail_tb.clearSelection()
                 self.student_detail_tb.update()
                 items = self.student_detail_tb.findItems(input_text, QtCore.Qt.MatchExactly)
@@ -432,7 +447,6 @@ class Dashboard:
                                     "Not a valid email address")
                 input_text, ok = QtWidgets.QInputDialog.getText(self.widget, \
                                 "", "Please type student's email address", text=input_text)
-        
 
 
     def remove_student_btn_onclick(self):

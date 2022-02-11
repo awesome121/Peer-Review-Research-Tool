@@ -94,7 +94,7 @@ class MailHandler:
             If it's from a subscriber but invalid subject, send usage prompt.
             If it's from a non-subscriber, ignore.
 
-            Provided:
+            Param:
                 mails: a list of mails in dict format
         """
         for mail in mails:
@@ -125,7 +125,7 @@ class MailHandler:
     def mark_as_read(self, msg_id):
         """
             Mark a message as read in user Inbox.
-            Provided:
+            Param:
                 msg_id: a string of message id
         """
         data = {'isRead' : 'true'}
@@ -138,7 +138,7 @@ class MailHandler:
 
     def reply_subm(self, msg_id, mail, is_subm_success):
         """
-            Provided:
+            Param:
                 msg_id: a string of message id
                 mail: an email in dict format
                 is_subm_success: True if the submission is successful
@@ -166,7 +166,7 @@ class MailHandler:
         """
             Distribute submission for a specific submission subm_id
             This function draws authors first, then draw 3 reviewers for the author
-            Provided:
+            Param:
                 subm_id: id of the submission to be distributed
         """
         authors = self.db_.draw_authors(subm_id)
@@ -182,7 +182,7 @@ class MailHandler:
 
     def get_mail_by_msg_id(self, msg_id):
         """
-            Provided:
+            Param:
                 convo_id: a string of conversation id
             Return:
                 an email object in dict form
@@ -193,7 +193,7 @@ class MailHandler:
 
     def send_req(self, subject, mail, dest):
         """
-            Provided:
+            Param:
                 subject: a string of mail subject
                 mail: a mail in dict format to be parsed
                 dest: a string of email address
@@ -247,7 +247,7 @@ class MailHandler:
     def reply_usage_prompt(self, msg_id, mail):
         """
             Send the prompt message to addr
-            Provided:
+            Param:
                 addr: An email address
         """
         comment = message_temp.USAGE_PROMPT
@@ -267,7 +267,7 @@ class MailHandler:
 
     def get_attachments(self, msg_id):
         """
-            Provided:
+            Param:
                 msg_id: a string of message id
             Return:
                 A list of attachments given for a specific message
