@@ -14,7 +14,7 @@
 """
 
 
-import csv, sqlite3, os
+import csv, sqlite3, time
 
 class Database:
     """
@@ -91,8 +91,8 @@ class Database:
         """
         cur = con.cursor()
         cur.execute(f"CREATE TABLE '{self.TB_SCHEDULE}' (subm_id integer, " +\
-            "start_date text, 'end_date (subm)' text, is_distributed integer, " +\
-            "'end_date (review)' text, 'end_date (eval)' text)")
+            "start_date integer, 'end_date (subm)' integer, is_distributed integer, " +\
+            "'end_date (review)' integer, 'end_date (eval)' integer)")
         con.commit()
 
     def init_num_review(self, con):
@@ -175,34 +175,53 @@ class Database:
         con.commit()
         con.close()
 
-    def update_connection(self):
-        # Establish a connection
+    # def update_connection(self):
+    #     # Establish a connection
+    #     con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+    #     # Get the cursor
+    #     cur = con.cursor()
+    #     cur.execute(f"UPDATE '{self.TB_CONNECTION}' (subm_id, start_date, " +\
+    #                     " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+    #                     " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", )
+    #     con.commit()
+    #     con.close()
+
+    def get_undistributed_subm_id(self):
+        """
+            Get undistributed submission id and mark it as distributed
+            Return:
+                subm_id: the marked submission id, None if it doesn't exist
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        # Get the cursor
         cur = con.cursor()
-
-        cur.execute(f"UPDATE '{self.TB_CONNECTION}' (subm_id, start_date, " +\
-                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
-                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", )
-        con.commit()
+        subm_id = cur.execute(f"SELECT subm_id FROM {self.TB_SCHEDULE} WHERE "+\
+                 f"""is_distributed = 0 AND {time.time_ns()} > "end_date (subm)" """+\
+                        " ORDER BY subm_id ").fetchone()
+        if subm_id:
+            subm_id = subm_id[0]
+            cur.execute(f"UPDATE {self.TB_SCHEDULE} SET is_distributed = 1 WHERE"+\
+                        f" subm_id = {subm_id}")
+            con.commit()
         con.close()
+        return subm_id
+    
 
-    def monitor_schedule(self):
-        """
-            This function will constantly monitoring schedule.csv.
-            If schedule.csv has been changed, update_schedule will be called.
-            If there is a submission deadline due, distibute submissions.
-        """
-        # If the last modified date has been changed.
-        if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
-            # Update self.TB_EMAIL_LIST
-            self.update_schedule()
-            # Store the lastest last modified date
-            self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
-        # if there is a submission deadline due:
-        # return subm_id
-        # else:
-        #     return -1
+    # def monitor_schedule(self):
+    #     """
+    #         This function will constantly monitoring schedule.csv.
+    #         If schedule.csv has been changed, update_schedule will be called.
+    #         If there is a submission deadline due, distibute submissions.
+    #     """
+    #     # If the last modified date has been changed.
+    #     if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
+    #         # Update self.TB_EMAIL_LIST
+    #         self.update_schedule()
+    #         # Store the lastest last modified date
+    #         self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
+    #     # if there is a submission deadline due:
+    #     # return subm_id
+    #     # else:
+    #     #     return -1
             
     def get_subscriber_total(self):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)

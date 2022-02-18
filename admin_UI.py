@@ -1,7 +1,7 @@
 # Created by: PyQt5 UI code generator 5.15.6
 
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
-import database, os, time
+import database, os, time, datetime
 
 import sys
 
@@ -720,8 +720,9 @@ class ScheduleDialog:
         # # ==================================
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
-
+        self.update_timezone_combobox()
         #listener
+        self.confirm_btn.clicked.connect(self.confirm_btn_onclick)
         self.cancel_btn.clicked.connect(self.cancel_btn_onclick)
 
     def retranslateUi(self, Dialog):
@@ -735,12 +736,29 @@ class ScheduleDialog:
         self.label_3.setText(_translate("Dialog", "Review Deadline"))
         self.label_2.setText(_translate("Dialog", "Submission Deadline (Distribution Time)"))
         self.cancel_btn.setText(_translate("Dialog", "Cancel"))
-  
+
+    def update_timezone_combobox(self):
+        timezones = time.tzname
+        for timezone in timezones:
+            self.timezone_combobox.addItem(timezone)
+        if len(timezones) > 1 and time.daylight:
+            self.timezone_combobox.setCurrentIndex(1)
+        else:
+            self.timezone_combobox.setCurrentIndex(0)
+
     def show(self):
         self.widget.show()
 
     def hide(self):
         self.widget.hide()
+
+    def confirm_btn_onclick(self):
+        subm_deadline = datetime.datetime.strptime(self.subm_dtedit.text(), "%d/%m/%y %I:%M %p")
+        review_deadline = datetime.datetime.strptime(self.review_dtedit.text(), "%d/%m/%y %I:%M %p")
+        eval_deadline = datetime.datetime.strptime(self.eval_dtedit.text(), "%d/%m/%y %I:%M %p")
+        # print(subm_deadline.timestamp().)
+        # self.controller.db.
+
 
     def cancel_btn_onclick(self):
         self.widget.done(self.widget.Accepted)

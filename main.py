@@ -24,7 +24,7 @@ class App:
         self.distributor_t = None
         self.token = None
         self.flow = None
-        self.deadline_monitor_t = None
+        self.monitor_t = None
         self.is_auth_success = False
         self.is_connected = False
 
@@ -46,29 +46,30 @@ class App:
         self.listener_t = threading.Thread(target=self.create_listener)
         self.listener_t.start()
 
-        self.deadline_monitor_t = threading.Thread(target=self.deadline_monitor)
-        self.deadline_monitor_t.start()
+        self.monitor_t = threading.Thread(target=self.monitor)
+        self.monitor_t.start()
 
-    def deadline_monitor(self):
+    def monitor(self):
         while self.is_connected:
-            # self.check_deadline()
+            self.check_deadline()
             self.refresh_token()
+            time.sleep(1)
         self.init_param()
     
     def check_deadline(self):
-        pass
-        # if it's deadline:
-            # threading.Thread(target=create_distributor) # around 11:59 pm, stay 1-2 hours
+        subm_id = self.db.get_undistributed_subm_id()
+        if subm_id:
+            threading.Thread(target=self.create_distributor, args=(subm_id,))
 
     def create_listener(self):
         auth_header = {'Authorization': 'Bearer ' + self.token}
         self.listener = MailHandler(self, auth_header)
         self.listener.listen()
 
-    def create_distributor(self):
+    def create_distributor(self, subm_id):
         auth_header = {'Authorization': 'Bearer ' + self.token}
         self.distributor = MailHandler(self, auth_header)
-        self.distributor.distribute_subm()
+        self.distributor.distribute_subm(subm_id)
 
 
     def login(self):
@@ -121,7 +122,6 @@ class App:
         accounts = self.app.get_accounts()
         result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
         print(result['expires_in'], threading.get_ident(), threading.active_count())
-        time.sleep(1)
         # print(sys.getrefcount(self))
         if self.token != result['access_token']:
             # print(result['access_token'])
