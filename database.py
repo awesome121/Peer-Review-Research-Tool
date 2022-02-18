@@ -337,8 +337,8 @@ class Database:
                 True on successfully storing
                 False otherwise
         """
-        print('store_review_req, subm convo id:', subm_msg_id)
-        print('store_review_req, review convo id:', review_convo_id)
+        # print('store_review_req, subm convo id:', subm_msg_id)
+        # print('store_review_req, review convo id:', review_convo_id)
         self.view_table_information('chain')
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
@@ -359,7 +359,7 @@ class Database:
                 True on successfully storing
                 False if it exists already
         """
-        print('store_review, review convo id:', review_convo_id)
+        # print('store_review, review convo id:', review_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
@@ -374,7 +374,7 @@ class Database:
             f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
-        self.view_table_information('chain')
+        # self.view_table_information('chain')
         return True
         
 
@@ -388,8 +388,8 @@ class Database:
                 True on successfully storing
                 False otherwise
         """
-        print('store_eval_req, review convo id:', review_convo_id)
-        print('store_eval_req, eval convo id:', eval_convo_id)
+        # print('store_eval_req, review convo id:', review_convo_id)
+        # print('store_eval_req, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET "eval_req_sent" = '{date_sent}', """ +\
@@ -397,7 +397,7 @@ class Database:
                 f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
-        self.view_table_information('chain')
+        # self.view_table_information('chain')
         return True
 
     def store_eval(self, eval_convo_id, rating, comment, date_received):
@@ -411,7 +411,7 @@ class Database:
                 True on successfully storing
                 False if it exists already
         """
-        print('store_eval, eval convo id:', eval_convo_id)
+        # print('store_eval, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
@@ -427,7 +427,7 @@ class Database:
             f""" WHERE "convo_id (eval)" = '{eval_convo_id}' """)
         con.commit()      
         con.close()
-        self.view_table_information('chain')
+        # self.view_table_information('chain')
         return True
 
     def get_author_by_convo_id(self, review_convo_id):
@@ -525,18 +525,36 @@ class Database:
         con.commit()
         con.close()
 
-    def get_subm_id_by_author(self, author):
+    def get_subm_by_author(self, author):
         """
-         Param:
+            Param:
                 author: student's email address
             Return:
                 A list of (subm_id, subm_received) matched by this author
         """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        result = cur.execute(f"SELECT subm_id, subm_received FROM {self.TB_CHAIN} WHERE author = '{author}'")\
+        result = cur.execute(f"SELECT subm_id, subm_received FROM {self.TB_CHAIN} WHERE author = '{author}'\
+                                ORDER BY subm_id")\
                         .fetchall()
         con.close()
+        return result
+
+    def get_reviewers_by_subm(self, author, subm):
+        """
+            Param:
+                author: student's email address
+                subm: submission id
+            Return:
+                A list of tuples which contains reviewers and date
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT reviewer, review_received FROM {self.TB_CHAIN} WHERE author = '{author}'\
+                     and subm_id = '{subm}'")\
+                        .fetchall()
+        con.close()
+        result = [item for item in result if item[0] and item[1]] # if they are not None
         return result
 
 #--------------------------------------------------

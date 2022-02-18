@@ -102,11 +102,39 @@ import database, os, time
 # write_t.join()
         
 
-con = sqlite3.connect('database.db')
-cur = con.cursor()
-result  = cur.execute("SELECT * FROM email_list").fetchall()
-print(result)
-con.commit()
-con.close()
+# con = sqlite3.connect('database.db')
+# cur = con.cursor()
+# result  = cur.execute("SELECT * FROM chain").fetchall()
+# print(result)
+# con.commit()
+# con.close()
+
+# os.system("rm database.db")
+db = database.Database()
+# db.create_database()
+db.store_subm('msgid1', 'j2@gmail.com', 1, '2022:2:19')
+
+# con = sqlite3.connect('database.db')
+# cur = con.cursor()
+# result  = cur.execute("SELECT * FROM schedule").fetchall()
+# print(result)
+# con.commit()
+# con.close()
+
+#[('msgid', 'j2@gmail.com', 2, '2022:2:19', 'review_convo_id', 'j4@gmail.com', '2022:2:20', '2022:2:21', 'eval_convo_id', 7, 'good', '2022:2:22', '2022:2:23')]
+# db = database.Database()
+# db.view_table_information('chain')
+# print(db.store_eval_req('review_convo_id', 'eval_convo_id', '2022:2:22'))
+# print(db.store_eval('eval_convo_id', 7, 'good', '2022:2:23'))
+
+# con = sqlite3.connect('database.db')
+# cur = con.cursor()
+# cur.execute(f"INSERT INTO schedule (subm_id, start_date, " +\
+#                         " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+#                         " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", (1,\
+#                              100, 100, 200, 300))
+# con.commit()
+# con.close()
+
 
 

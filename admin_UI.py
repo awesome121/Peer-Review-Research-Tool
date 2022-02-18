@@ -557,6 +557,7 @@ class StudentDetailDialog:
         self.widget.setModal(QtCore.Qt.ApplicationModal)
         self.widget.show()
         self.update_subm_panel_as_author()
+        self.widget.exec()
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -574,8 +575,13 @@ class StudentDetailDialog:
         self.bottom_left_tb.setColumnCount(0)
         self.bottom_left_tb.setRowCount(0)
         self.gridLayout.addWidget(self.bottom_left_tb, 6, 0, 1, 1)
-        self.top_right_tb = QtWidgets.QTableWidget(Dialog)
+        self.top_right_tb = QtWidgets.QTableWidget(0, 2, Dialog)
         self.top_right_tb.setObjectName("top_right_tb")
+        self.top_right_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.top_right_tb.setHorizontalHeaderLabels(('Reviewer','Date'))
+        self.top_right_tb.horizontalHeader().setSectionResizeMode(\
+                                            QtWidgets.QHeaderView.Stretch)
+        self.top_right_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         self.gridLayout.addWidget(self.top_right_tb, 3, 2, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
@@ -606,13 +612,14 @@ class StudentDetailDialog:
         self.bottom_textedit.setObjectName("bottom_textedit")
         self.gridLayout.addWidget(self.bottom_textedit, 5, 2, 1, 1)
 
-        self.top_left_tb = QtWidgets.QTableWidget(1, 2, Dialog)
+        self.top_left_tb = QtWidgets.QTableWidget(0, 2, Dialog)
         self.top_left_tb.setObjectName("top_left_tb")
         self.top_left_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.top_left_tb.setHorizontalHeaderLabels(('Submission ID','Date'))
         self.top_left_tb.horizontalHeader().setSectionResizeMode(\
                                             QtWidgets.QHeaderView.Stretch)
         self.top_left_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.top_left_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
         self.gridLayout.addWidget(self.top_left_tb, 3, 0, 1, 1)
         self.line = QtWidgets.QFrame(Dialog)
@@ -621,12 +628,10 @@ class StudentDetailDialog:
         self.line.setObjectName("line")
         self.gridLayout.addWidget(self.line, 4, 2, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
-
         # listener
-        self.top_left_tb.itemDoubleClicked.connect(self.top_left_tb_doubleclicked)
+        self.top_left_tb.itemSelectionChanged.connect(self.top_left_tb_itemSelected)
         print('listener')
 
     def retranslateUi(self, Dialog):
@@ -634,23 +639,36 @@ class StudentDetailDialog:
         self.addr_lb.setText(_translate("Dialog", self.email_addr))
         self.label_4.setText(_translate("Dialog", "is reviewed by"))
         self.label_3.setText(_translate("Dialog", "also reviewed by"))
-        self.label.setText(_translate("Dialog", "Student has submitted:"))
+        self.label.setText(_translate("Dialog", "has submitted:"))
         self.label_2.setText(_translate("Dialog", "has reviewed:"))
 
-    def top_left_tb_doubleclicked(self, item):
-        self.addr_lb.setText('----')
-        
+    def top_left_tb_itemSelected(self):
+        if self.top_left_tb.selectedItems():
+            item = self.top_left_tb.selectedItems()[0] # table is in single selection mode
+            selected_row = self.top_left_tb.row(item)
+            subm_id_col = 0
+            subm_id = self.top_left_tb.item(selected_row, subm_id_col).text()
+            self.update_review_panel_as_author(subm_id)
+
+    def update_review_panel_as_author(self, subm_id):
+        reviewers = self.controller.db.get_reviewers_by_subm(self.email_addr, subm_id)
+        self.top_right_tb.clearContents()
+        self.top_right_tb.setRowCount(len(reviewers))
+        for i in range(len(reviewers)):
+            reviewer = reviewers[i][0]
+            date = reviewers[i][1]
+            self.top_right_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(reviewer)))
+            self.top_right_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(date)))
 
     def update_subm_panel_as_author(self):
-        subm_list_as_author = self.controller.db.get_subm_id_by_author(self.email_addr)
+        subm_list_as_author = self.controller.db.get_subm_by_author(self.email_addr)
         self.top_left_tb.clearContents()
         self.top_left_tb.setRowCount(len(subm_list_as_author))
         for i in range(len(subm_list_as_author)):
-            self.top_left_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(subm_list_as_author[i][0])))
-            self.top_left_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(subm_list_as_author[i][1])))
-
-        
-
+            subm_id = subm_list_as_author[i][0]
+            date = subm_list_as_author[i][1]
+            self.top_left_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(subm_id)))
+            self.top_left_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(date)))
 
 class ScheduleDialog:
     def __init__(self, controller, parent):
@@ -756,7 +774,7 @@ class ScheduleDialog:
         subm_deadline = datetime.datetime.strptime(self.subm_dtedit.text(), "%d/%m/%y %I:%M %p")
         review_deadline = datetime.datetime.strptime(self.review_dtedit.text(), "%d/%m/%y %I:%M %p")
         eval_deadline = datetime.datetime.strptime(self.eval_dtedit.text(), "%d/%m/%y %I:%M %p")
-        # print(subm_deadline.timestamp().)
+        # print(subm_deadline.timestamp())
         # self.controller.db.
 
 
