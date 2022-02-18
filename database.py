@@ -64,7 +64,7 @@ class Database:
         self.init_schedule(con)
         self.init_num_review(con)
         self.init_chain(con)
-        self.init_connection(con)
+        # self.init_connection(con)
         con.close()
 
     def init_email_list(self, con):
@@ -284,11 +284,11 @@ class Database:
                 False if it exists already
         """
         
-        print('store_subm, subm msg id:', subm_msg_id)
+        # print('store_subm, subm msg id:', subm_msg_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        print(f"SELECT * FROM {self.TB_CHAIN} " +\
-            f"WHERE author = '{author}' AND subm_id = {subm_id}")
+        # print(f"SELECT * FROM {self.TB_CHAIN} " +\
+        #     f"WHERE author = '{author}' AND subm_id = {subm_id}")
         result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} "+\
                             f"WHERE author = '{author}' AND subm_id = {subm_id}")\
                     .fetchone()
@@ -304,7 +304,7 @@ class Database:
             (subm_msg_id, author, subm_id, date))
         con.commit()
         con.close()
-        self.view_table_information('chain')
+        # self.view_table_information('chain')
         return True
 
     def store_review_req(self, subm_msg_id, review_convo_id, reviewer, date_sent):
@@ -483,16 +483,16 @@ class Database:
             con.close()
             return True
 
-    def get_email_addr_by(self, begin):
+    def get_author_by_prefix(self, prefix):
         """
             Param:
-                begin: beginning string of a student's email address
+                prefix: beginning string of a student's email address
             Return:
-                A list of email addresses matched by 'begin'
+                A list of email addresses matched by 'prefix'
         """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address LIKE '{begin}%'")\
+        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address LIKE '{prefix}%'")\
                         .fetchall()
         con.close()
         result = [item[0] for item in result]
@@ -505,7 +505,21 @@ class Database:
             cur.execute(f"DELETE FROM {self.TB_EMAIL_LIST} WHERE address = '{addr}' ")
         con.commit()
         con.close()
-        
+
+    def get_subm_id_by_author(self, author):
+        """
+         Param:
+                author: student's email address
+            Return:
+                A list of (subm_id, subm_received) matched by this author
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT subm_id, subm_received FROM {self.TB_CHAIN} WHERE author = '{author}'")\
+                        .fetchall()
+        con.close()
+        return result
+
 #--------------------------------------------------
     def view_table_information(self, table_name):
         """

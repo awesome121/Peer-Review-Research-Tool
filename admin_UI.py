@@ -1,6 +1,6 @@
 # Created by: PyQt5 UI code generator 5.15.6
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 import database, os, time
 
 import sys
@@ -345,12 +345,12 @@ class Dashboard:
         self.gridLayout_5.addWidget(self.deadline_tb, 0, 0, 1, 1)
         self.gridLayout_11 = QtWidgets.QGridLayout()
         self.gridLayout_11.setObjectName("gridLayout_11")
-        self.pushButton_8 = QtWidgets.QPushButton(self.deadlines_tab)
-        self.pushButton_8.setObjectName("pushButton_8")
-        self.gridLayout_11.addWidget(self.pushButton_8, 1, 2, 1, 1)
-        self.pushButton_3 = QtWidgets.QPushButton(self.deadlines_tab)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.gridLayout_11.addWidget(self.pushButton_3, 0, 2, 1, 1)
+        self.remove_selected_btn = QtWidgets.QPushButton(self.deadlines_tab)
+        self.remove_selected_btn.setObjectName("remove_selected_btn")
+        self.gridLayout_11.addWidget(self.remove_selected_btn, 1, 2, 1, 1)
+        self.new_schedule_btn = QtWidgets.QPushButton(self.deadlines_tab)
+        self.new_schedule_btn.setObjectName("new_schedule_btn")
+        self.gridLayout_11.addWidget(self.new_schedule_btn, 0, 2, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout_11.addItem(spacerItem, 0, 1, 1, 1)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -371,16 +371,11 @@ class Dashboard:
         self.add_btn.clicked.connect(self.add_btn_onclick)
         self.search_lineedit.textEdited.connect(self.search_lineedit_onedited)
         self.student_detail_tb.itemSelectionChanged.connect(self.student_detail_tb_onselect)
+        self.new_schedule_btn.clicked.connect(self.new_schedule_btn_onclick)
+        self.student_detail_tb.itemDoubleClicked.connect(self.student_doubleClick)
         # update tables
         self.update_student_detail_tb()
 
-
-        # ==================================
-        self.dateeidt = QtWidgets.QDateTimeEdit(self.deadline_tb, calendarPopup=True)
-        self.gridLayout_5.addWidget(self.dateeidt, 0, 0, 1, 1)
-        # self.widget.menuBar().setCornerWidget(self.dateeidt, QtCore.Qt.Corner.TopLeftCorner)
-        self.dateeidt.setDateTime(QtCore.QDateTime.currentDateTime())
-        # ==================================
 
 
     def retranslateUi(self, MainWindow):
@@ -405,12 +400,19 @@ class Dashboard:
         self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
         self.add_btn.setText(_translate("MainWindow", "Add a student"))
         self.tab.setTabText(self.tab.indexOf(self.students_tab), _translate("MainWindow", "Students"))
-        self.pushButton_8.setText(_translate("MainWindow", "Remove Selected"))
-        self.pushButton_3.setText(_translate("MainWindow", "New Schedule"))
+        self.remove_selected_btn.setText(_translate("MainWindow", "Remove Selected"))
+        self.new_schedule_btn.setText(_translate("MainWindow", "New Schedule"))
         self.tab.setTabText(self.tab.indexOf(self.deadlines_tab), _translate("MainWindow", "Deadlines"))
     
+    def new_schedule_btn_onclick(self):
+        self.child = ScheduleDialog(self.controller, self)
+
+    def student_doubleClick(self, item):
+        StudentDetailDialog(self.controller, self, item.text())
+
+
     def search_lineedit_onedited(self):
-        results = self.controller.db.get_email_addr_by(self.search_lineedit.text())
+        results = self.controller.db.get_author_by_prefix(self.search_lineedit.text())
         self.update_student_detail_tb(results)
 
     def import_btn_onclick(self):
@@ -481,14 +483,14 @@ class Dashboard:
             else:
                 self.remove_btn.setText(f"Remove {len(idxs)} selected students")
 
-    def on_changed_combobox_tab_1(self, selected_value):
-        print("Combbox changed", selected_value)
-        if selected_value == "Submission":
-            self.label_2.setText(f"Students submissions submitted for current deadline: {self.total_submission}")
-        elif selected_value == "Review":
-            self.label_2.setText(f"Students reviews submitted for current deadline: {self.total_review}")
-        elif selected_value == "Rating":
-            self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")
+    # def on_changed_combobox_tab_1(self, selected_value):
+    #     print("Combbox changed", selected_value)
+    #     if selected_value == "Submission":
+    #         self.label_2.setText(f"Students submissions submitted for current deadline: {self.total_submission}")
+    #     elif selected_value == "Review":
+    #         self.label_2.setText(f"Students reviews submitted for current deadline: {self.total_review}")
+    #     elif selected_value == "Rating":
+    #         self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")
 
     def conn_btn_onclick(self):
         print("click button, popping dialog")
@@ -546,12 +548,15 @@ class Dashboard:
         self.widget.hide()
 
 class StudentDetailDialog:
-    def __init__(self, controller, parent):
+    def __init__(self, controller, parent, email_addr):
         self.controller = controller
         self.parent = parent
-        self.widget = QtWidgets.QDialog()
+        self.email_addr = email_addr
+        self.widget = QtWidgets.QDialog(parent=self.parent.widget)
         self.setupUi(self.widget)
+        self.widget.setModal(QtCore.Qt.ApplicationModal)
         self.widget.show()
+        self.update_subm_panel_as_author()
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -571,8 +576,7 @@ class StudentDetailDialog:
         self.gridLayout.addWidget(self.bottom_left_tb, 6, 0, 1, 1)
         self.top_right_tb = QtWidgets.QTableWidget(Dialog)
         self.top_right_tb.setObjectName("top_right_tb")
-        self.top_right_tb.setColumnCount(0)
-        self.top_right_tb.setRowCount(0)
+
         self.gridLayout.addWidget(self.top_right_tb, 3, 2, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setAlignment(QtCore.Qt.AlignCenter)
@@ -601,10 +605,15 @@ class StudentDetailDialog:
         self.bottom_textedit = QtWidgets.QTextEdit(Dialog)
         self.bottom_textedit.setObjectName("bottom_textedit")
         self.gridLayout.addWidget(self.bottom_textedit, 5, 2, 1, 1)
-        self.top_left_tb = QtWidgets.QTableWidget(Dialog)
+
+        self.top_left_tb = QtWidgets.QTableWidget(1, 2, Dialog)
         self.top_left_tb.setObjectName("top_left_tb")
-        self.top_left_tb.setColumnCount(0)
-        self.top_left_tb.setRowCount(0)
+        self.top_left_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.top_left_tb.setHorizontalHeaderLabels(('Submission ID','Date'))
+        self.top_left_tb.horizontalHeader().setSectionResizeMode(\
+                                            QtWidgets.QHeaderView.Stretch)
+        self.top_left_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+
         self.gridLayout.addWidget(self.top_left_tb, 3, 0, 1, 1)
         self.line = QtWidgets.QFrame(Dialog)
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
@@ -616,35 +625,76 @@ class StudentDetailDialog:
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+        # listener
+        self.top_left_tb.itemDoubleClicked.connect(self.top_left_tb_doubleclicked)
+        print('listener')
+
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        self.addr_lb.setText(_translate("Dialog", "example@gmail.com"))
+        self.addr_lb.setText(_translate("Dialog", self.email_addr))
         self.label_4.setText(_translate("Dialog", "is reviewed by"))
         self.label_3.setText(_translate("Dialog", "also reviewed by"))
         self.label.setText(_translate("Dialog", "Student has submitted:"))
         self.label_2.setText(_translate("Dialog", "has reviewed:"))
 
+    def top_left_tb_doubleclicked(self, item):
+        self.addr_lb.setText('----')
+        
+
+    def update_subm_panel_as_author(self):
+        subm_list_as_author = self.controller.db.get_subm_id_by_author(self.email_addr)
+        self.top_left_tb.clearContents()
+        self.top_left_tb.setRowCount(len(subm_list_as_author))
+        for i in range(len(subm_list_as_author)):
+            self.top_left_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(subm_list_as_author[i][0])))
+            self.top_left_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(subm_list_as_author[i][1])))
+
+        
+
+
 class ScheduleDialog:
     def __init__(self, controller, parent):
         self.controller = controller
         self.parent = parent
-        self.widget = QtWidgets.QDialog()
+        self.widget = QtWidgets.QDialog(parent=self.parent.widget)
         self.setupUi(self.widget)
+        self.widget.setModal(QtCore.Qt.ApplicationModal)
         self.widget.show()
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(538, 138)
+        Dialog.resize(662, 151)
         self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.review_dt_edit = QtWidgets.QDateTimeEdit(Dialog)
-        self.review_dt_edit.setObjectName("review_dt_edit")
-        self.gridLayout.addWidget(self.review_dt_edit, 2, 1, 1, 1)
+        self.eval_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        self.eval_dtedit.setObjectName("eval_dtedit")
+        self.gridLayout.addWidget(self.eval_dtedit, 3, 1, 1, 1)
+        self.review_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        self.review_dtedit.setObjectName("review_dtedit")
+        self.gridLayout.addWidget(self.review_dtedit, 2, 1, 1, 1)
+        self.subm_id_lb = QtWidgets.QLabel(Dialog)
+        self.subm_id_lb.setAlignment(QtCore.Qt.AlignCenter)
+        self.subm_id_lb.setObjectName("subm_id_lb")
+        self.gridLayout.addWidget(self.subm_id_lb, 0, 1, 1, 1)
+        self.line = QtWidgets.QFrame(Dialog)
+        self.line.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
+        self.gridLayout.addWidget(self.line, 0, 2, 4, 1)
+        self.confirm_btn = QtWidgets.QPushButton(Dialog)
+        self.confirm_btn.setObjectName("confirm_btn")
+        self.gridLayout.addWidget(self.confirm_btn, 3, 3, 1, 1)
         self.timezone_combobox = QtWidgets.QComboBox(Dialog)
         self.timezone_combobox.setObjectName("timezone_combobox")
         self.gridLayout.addWidget(self.timezone_combobox, 1, 3, 1, 1)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.subm_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        self.subm_dtedit.setObjectName("subm_dtedit")
+        self.gridLayout.addWidget(self.subm_dtedit, 1, 1, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
@@ -652,44 +702,49 @@ class ScheduleDialog:
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_6.setObjectName("label_6")
         self.gridLayout.addWidget(self.label_6, 0, 3, 1, 1)
-        self.subm_id_lb = QtWidgets.QLabel(Dialog)
-        self.subm_id_lb.setAlignment(QtCore.Qt.AlignCenter)
-        self.subm_id_lb.setObjectName("subm_id_lb")
-        self.gridLayout.addWidget(self.subm_id_lb, 0, 1, 1, 1)
-        self.label_2 = QtWidgets.QLabel(Dialog)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
-        self.subm_dt_edit = QtWidgets.QDateTimeEdit(Dialog)
-        self.subm_dt_edit.setObjectName("subm_dt_edit")
-        self.gridLayout.addWidget(self.subm_dt_edit, 1, 1, 1, 1)
-        self.eval_dt_edit = QtWidgets.QDateTimeEdit(Dialog)
-        self.eval_dt_edit.setObjectName("eval_dt_edit")
-        self.gridLayout.addWidget(self.eval_dt_edit, 3, 1, 1, 1)
         self.label_3 = QtWidgets.QLabel(Dialog)
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
-        self.line = QtWidgets.QFrame(Dialog)
-        self.line.setFrameShape(QtWidgets.QFrame.VLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line.setObjectName("line")
-        self.gridLayout.addWidget(self.line, 0, 2, 4, 1)
-        self.label = QtWidgets.QLabel(Dialog)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.label_2 = QtWidgets.QLabel(Dialog)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
+        self.cancel_btn = QtWidgets.QPushButton(Dialog)
+        self.cancel_btn.setObjectName("cancel_btn")
+        self.gridLayout.addWidget(self.cancel_btn, 3, 4, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-
+        # # ==================================
+        # self.dateeidt = QtWidgets.QDateTimeEdit(self.deadline_tb, calendarPopup=True)
+        # self.gridLayout_5.addWidget(self.dateeidt, 0, 0, 1, 1)
+        # # self.widget.menuBar().setCornerWidget(self.dateeidt, QtCore.Qt.Corner.TopLeftCorner)
+        # self.dateeidt.setDateTime(QtCore.QDateTime.currentDateTime())
+        # # ==================================
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+        #listener
+        self.cancel_btn.clicked.connect(self.cancel_btn_onclick)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Schedule"))
+        self.subm_id_lb.setText(_translate("Dialog", "1"))
+        self.confirm_btn.setText(_translate("Dialog", "Confirm"))
+        self.label.setText(_translate("Dialog", "Submission ID"))
         self.label_4.setText(_translate("Dialog", "Evaluation Deadline"))
         self.label_6.setText(_translate("Dialog", "Time Zone"))
-        self.subm_id_lb.setText(_translate("Dialog", "1"))
-        self.label_2.setText(_translate("Dialog", "Submission Deadline (Distribution Time)"))
         self.label_3.setText(_translate("Dialog", "Review Deadline"))
-        self.label.setText(_translate("Dialog", "Submission ID"))
+        self.label_2.setText(_translate("Dialog", "Submission Deadline (Distribution Time)"))
+        self.cancel_btn.setText(_translate("Dialog", "Cancel"))
+  
+    def show(self):
+        self.widget.show()
+
+    def hide(self):
+        self.widget.hide()
+
+    def cancel_btn_onclick(self):
+        self.widget.done(self.widget.Accepted)
+
 
 class DisconnectDialog:
     def __init__(self, controller, parent) -> None:
