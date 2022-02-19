@@ -17,17 +17,17 @@
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="addr_lb">
        <property name="text">
         <string>example@gmail.com</string>
        </property>
       </widget>
      </item>
      <item row="6" column="0">
-      <widget class="QTableWidget" name="tableWidget_3"/>
+      <widget class="QTableWidget" name="bottom_left_tb"/>
      </item>
      <item row="3" column="2">
-      <widget class="QTableWidget" name="tableWidget_2"/>
+      <widget class="QTableWidget" name="top_right_tb"/>
      </item>
      <item row="3" column="1">
       <widget class="QLabel" name="label_4">
@@ -42,7 +42,7 @@
      <item row="6" column="1">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>is evaluated by</string>
+        <string>also reviewed by</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -50,10 +50,10 @@
       </widget>
      </item>
      <item row="6" column="2">
-      <widget class="QTableWidget" name="tableWidget_4"/>
+      <widget class="QTableWidget" name="bottom_right_tb"/>
      </item>
      <item row="2" column="2">
-      <widget class="QTextEdit" name="textEdit"/>
+      <widget class="QTextEdit" name="top_textedit"/>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label">
@@ -76,10 +76,10 @@
       </widget>
      </item>
      <item row="5" column="2">
-      <widget class="QTextEdit" name="textEdit_2"/>
+      <widget class="QTextEdit" name="bottom_textedit"/>
      </item>
      <item row="3" column="0">
-      <widget class="QTableWidget" name="tableWidget"/>
+      <widget class="QTableWidget" name="top_left_tb"/>
      </item>
      <item row="4" column="2">
       <widget class="Line" name="line">

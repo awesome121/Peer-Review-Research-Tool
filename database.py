@@ -1,13 +1,10 @@
 """
-    Provided (with header, see example):
-        email_list.csv          format(columns): email_list
-        schedule.csv            format(columns): submission_id, date
-
     Generated:
         database.db
     
     Tables in database.db:
         email_list
+        submission
         schedule
         num_review
         chain
@@ -30,6 +27,7 @@ class Database:
         self.DATABASE = "database.db"
         # tables
         self.TB_EMAIL_LIST = "email_list"
+        self.TB_SUBMISSION = "submission"
         self.TB_SCHEDULE = "schedule"
         self.TB_NUM_REVIEW = "num_review"
         self.TB_CHAIN = "chain"
@@ -61,6 +59,7 @@ class Database:
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         # Init tables (Create tables and Insert data)
         self.init_email_list(con)
+        self.init_submission(con)
         self.init_schedule(con)
         self.init_num_review(con)
         self.init_chain(con)
@@ -80,12 +79,24 @@ class Database:
         cur.execute(f"CREATE TABLE '{self.TB_EMAIL_LIST}' (address text)")
         con.commit()
 
+    def init_submission(self, con):
+        """
+            ===This function can be called only on initialising database===
+            Param:
+                connection to database.db 
+            Generates:
+                email_list table in database.db
+        """
+        cur = con.cursor()
+        cur.execute(f"CREATE TABLE {self.TB_SUBMISSION} ('msg_id (subm)' text,\
+                    author text, subm_id integer, subm_received text)")
+        con.commit()
+
     def init_schedule(self, con):
         """
             ===This function can be called only on initialising database===
             Param:
                 connection to database.db
-                schedule.csv
             Generates:
                 schedule table in database.db
         """
@@ -162,19 +173,6 @@ class Database:
         con.commit()
         con.close()
 
-    def store_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
-        # Establish a connection
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        # Get the cursor
-        cur = con.cursor()
-
-        cur.execute(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
-                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
-                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", (subm_id,\
-                             start_date, end_date, end_date_review, end_date_eval))
-        con.commit()
-        con.close()
-
     # def update_connection(self):
     #     # Establish a connection
     #     con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
@@ -186,169 +184,63 @@ class Database:
     #     con.commit()
     #     con.close()
 
-    def get_undistributed_subm_id(self):
-        """
-            Get undistributed submission id and mark it as distributed
-            Return:
-                subm_id: the marked submission id, None if it doesn't exist
-        """
+    def store_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
+        # Establish a connection
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        # Get the cursor
         cur = con.cursor()
-        subm_id = cur.execute(f"SELECT subm_id FROM {self.TB_SCHEDULE} WHERE "+\
-                 f"""is_distributed = 0 AND {int(time.time())} > "end_date (subm)" """+\
-                        " ORDER BY subm_id ").fetchone()
-        if subm_id:
-            subm_id = subm_id[0]
-            cur.execute(f"UPDATE {self.TB_SCHEDULE} SET is_distributed = 1 WHERE"+\
-                        f" subm_id = {subm_id}")
-            con.commit()
-        con.close()
-        return subm_id
-    
-
-    # def monitor_schedule(self):
-    #     """
-    #         This function will constantly monitoring schedule.csv.
-    #         If schedule.csv has been changed, update_schedule will be called.
-    #         If there is a submission deadline due, distibute submissions.
-    #     """
-    #     # If the last modified date has been changed.
-    #     if os.path.getmtime(self.SCHEDULE) != self.SCHEDULE_LST_MODIFIED_DATE:
-    #         # Update self.TB_EMAIL_LIST
-    #         self.update_schedule()
-    #         # Store the lastest last modified date
-    #         self.SCHEDULE_LST_MODIFIED_DATE = os.path.getmtime(self.SCHEDULE)
-    #     # if there is a submission deadline due:
-    #     # return subm_id
-    #     # else:
-    #     #     return -1
-            
-    def get_subscriber_total(self):
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT COUNT(*) from '{self.TB_EMAIL_LIST}'").fetchone()
+        cur.execute(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
+                        " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
+                        " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", (subm_id,\
+                             start_date, end_date, end_date_review, end_date_eval))
         con.commit()
         con.close()
-        # result is a list of tuples, the tuples are columns corresponds to the header
-        count = result[0][0]
-        return count
 
-    def is_subscriber(self, addr):
-        """
-            Return True if addr is in email address list
-            False otherwise.
-            Param:
-                addr: a string that representing an email address
-            Return:
-                True or False (boolean)
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' WHERE address = '{addr}'")\
-                    .fetchone()
-        con.commit()
-        con.close()
-        return result is not None
-
-    def draw_authors(self, subm_id):
+    def store_subm(self, msg_id, author, subm_id, subm_received):
         """
             Param:
-                subm_id: an integer of submission id
-            Return:
-                a list of tuples ('author', 'msg_id (subm)') whose submission 
-                needs to be distributed
-        """
-        raise NotImplementedError
-   
-    def draw_reviewers(self, author):
-        """
-            Randomly draw three reviewers (except this auther),
-            a reviewer can only review maximum 3 different 
-            submissions, finally increment their num of 
-            reviews in num_review.db.
-            Param:
-                author: a string of an author's email address 
-            Return:
-                a list of reviewers' email addresses
-        """
-        reviewers = []
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        # Reviewer who has lowest number of work will have highest priority
-        # number = 0
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
-        # number = 1
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
-        # number = 2
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
-        if len(reviewers) > 3:
-            reviewers = reviewers[0:3]
-        cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
-        con.commit()
-        con.close()
-        return reviewers
-
-    def store_subm(self, subm_msg_id, author, subm_id, date):
-        """
-            Param:
-                subm_msg_id: submission message id
                 author: a string of an author's email address
                 subm_id: an integer of a submission id, e.g. 1, 2, 3
-                date: a string of the date on receiving this submission
+                subm_received: a string of the date on receiving this submission
             Return:
                 True on successfully storing
                 False if it exists already
         """
-        
-        # print('store_subm, subm msg id:', subm_msg_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        # print(f"SELECT * FROM {self.TB_CHAIN} " +\
-        #     f"WHERE author = '{author}' AND subm_id = {subm_id}")
-        result = cur.execute(f"SELECT * FROM {self.TB_CHAIN} "+\
+        result = cur.execute(f"SELECT * FROM {self.TB_SUBMISSION} "+\
                             f"WHERE author = '{author}' AND subm_id = {subm_id}")\
                     .fetchone()
         if result is not None: # already exists
-            con.commit()
             con.close()
             return False
-        cur.execute(f"INSERT INTO {self.TB_CHAIN} " +\
-        "('msg_id (subm)', author, subm_id, subm_received, " +\
-        "'convo_id (review)', reviewer, review_req_sent, review_received, " +\
-        "'convo_id (eval)', rating, comment, eval_req_sent, eval_received)" +\
-        f" values (?,?,?,?" + ", NULL" * 9 + ")",\
-            (subm_msg_id, author, subm_id, date))
-        con.commit()
-        con.close()
-        # self.view_table_information('chain')
-        return True
+        else:
+            cur.execute(f"INSERT INTO {self.TB_SUBMISSION} ('msg_id (subm)', author, subm_id, subm_received)\
+                        values (?, ?, ?, ?)", (msg_id, author, subm_id, subm_received))
+            con.commit()
+            con.close()
+            return True
 
-    def store_review_req(self, subm_msg_id, review_convo_id, reviewer, date_sent):
+    def store_review_req(self, msg_id, author, subm_id, subm_received, review_convo_id, reviewer, date_sent):
         """
             Param:
-                subm_msg_id: submission message id
+                msg_id: submission message id
+                author: a string of email address
+                subm_id: an integer of submission id
+                subm_received: a string of date
                 review_convo_id: initialised when review request was sent
                 reviewer: a string of reviewer's email address to whom it's sent
                 date_sent: a string of date on sending the review request
-            Return:
-                True on successfully storing
-                False otherwise
         """
-        # print('store_review_req, subm convo id:', subm_msg_id)
-        # print('store_review_req, review convo id:', review_convo_id)
-        # self.view_table_information('chain')
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
-        cur.execute(f""" UPDATE {self.TB_CHAIN} SET "convo_id (review)" = '{review_convo_id}', """ +\
-                f""" reviewer = '{reviewer}', review_req_sent = '{date_sent}' """ +\
-                f""" WHERE "msg_id (subm)" = '{subm_msg_id}' """)
+        cur.execute(f"INSERT INTO {self.TB_CHAIN} ('msg_id (subm)', author, subm_id, subm_received, 'convo_id (review)',\
+                    reviewer, review_req_sent, review_received, 'convo_id (eval)', rating, comment,\
+                    eval_req_sent, eval_received) values (?,?,?,?,?,?,?" + ", NULL" * 6 + ")",\
+                    (msg_id, author, subm_id, subm_received, review_convo_id, reviewer, date_sent))
         con.commit()
         con.close()
-        # self.view_table_information('chain')
-        return True
 
     def store_review(self, review_convo_id, date_received):
         """
@@ -359,7 +251,6 @@ class Database:
                 True on successfully storing
                 False if it exists already
         """
-        # print('store_review, review convo id:', review_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
@@ -375,9 +266,7 @@ class Database:
             f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
-        # self.view_table_information('chain')
         return True
-        
 
     def store_eval_req(self, review_convo_id, eval_convo_id, date_sent):
         """
@@ -389,8 +278,6 @@ class Database:
                 True on successfully storing
                 False otherwise
         """
-        # print('store_eval_req, review convo id:', review_convo_id)
-        # print('store_eval_req, eval convo id:', eval_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f""" UPDATE {self.TB_CHAIN} SET "eval_req_sent" = '{date_sent}', """ +\
@@ -398,7 +285,6 @@ class Database:
                 f""" WHERE "convo_id (review)" = '{review_convo_id}' """)
         con.commit()
         con.close()
-        # self.view_table_information('chain')
         return True
 
     def store_eval(self, eval_convo_id, rating, comment, date_received):
@@ -431,6 +317,23 @@ class Database:
         # self.view_table_information('chain')
         return True
 
+    #==================================================
+    
+    def get_author_by_prefix(self, prefix):
+        """
+            Param:
+                prefix: beginning string of a student's email address
+            Return:
+                A list of email addresses matched by 'prefix'
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address LIKE '{prefix}%'")\
+                        .fetchall()
+        con.close()
+        result = [item[0] for item in result]
+        return result
+
     def get_author_by_convo_id(self, review_convo_id):
         """
             Param:
@@ -445,6 +348,100 @@ class Database:
                             f""" "convo_id (review)" = '{review_convo_id}' """)\
                     .fetchone()['author']
         return author
+
+    def get_undistributed_subm_id(self):
+        """
+            Get undistributed submission id and mark it as distributed
+            Return:
+                subm_id: the marked submission id, None if it doesn't exist
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        subm_id = cur.execute(f"SELECT subm_id FROM {self.TB_SCHEDULE} WHERE "+\
+                 f"""is_distributed = 0 AND {int(time.time())} > "end_date (subm)" """+\
+                        " ORDER BY subm_id ").fetchone()
+        if subm_id:
+            subm_id = subm_id[0]
+            cur.execute(f"UPDATE {self.TB_SCHEDULE} SET is_distributed = 1 WHERE"+\
+                        f" subm_id = {subm_id}")
+            con.commit()
+        con.close()
+        return subm_id
+
+    def get_subms_by_id(self, subm_id):
+        """
+            Param:
+                subm_id: an integer of submission id
+            Return:
+                a list of tuples ('msg_id', 'author', subm_id, subm_received)
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_SUBMISSION} subm_id = {subm_id}")\
+                    .fetchall()
+        return result
+
+    def get_subm_by_author(self, author):
+        """
+            Param:
+                author: student's email address
+            Return:
+                A list of (subm_id, subm_received) matched by this author
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT subm_id, subm_received FROM {self.TB_SUBMISSION}\
+                             WHERE author = '{author}' ORDER BY subm_id")\
+                            .fetchall()
+        con.close()
+        return result
+    
+    def get_reviewers_by_subm(self, author, subm):
+        """
+            Param:
+                author: student's email address
+                subm: submission id
+            Return:
+                A list of tuples which contains reviewers and date
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT reviewer, review_received FROM {self.TB_CHAIN} WHERE author = '{author}'\
+                     and subm_id = '{subm}'")\
+                        .fetchall()
+        con.close()
+        return result
+    
+    def get_other_reviewers_by_subm(self, author, subm_id, except_):
+        """
+            Param:
+                author: student's email address
+                subm_id: submission id
+            Return:
+                A list of tuples which contains 'reviewer', 'review_received', 'rating'
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT reviewer, rating, review_received FROM {self.TB_CHAIN}"+\
+                f" WHERE author = '{author}' and subm_id = '{subm_id}' and reviewer != '{except_}'")\
+                        .fetchall()
+        con.close()
+        return result
+   
+    def get_reviews_by_reviewer(self, reviewer):
+        """
+            Param:
+                reviewer: student's email address
+            Return:
+                A list of tuples which contains 'authors', 'subm_id', 'reviewed date' and 'rating'
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT author, subm_id, review_received, rating FROM {self.TB_CHAIN}"+\
+                        f" WHERE reviewer = '{reviewer}'")\
+                        .fetchall()
+        con.close()
+        return result
 
     def get_num_item_by_id(self, subm_id, item):
         """
@@ -473,7 +470,17 @@ class Database:
         # result is a list of tuples, the tuples are columns corresponds to the header
         count = result[0][0]
         return count
-
+    
+    def get_subscriber_total(self):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT COUNT(*) from '{self.TB_EMAIL_LIST}'").fetchone()
+        con.commit()
+        con.close()
+        # result is a list of tuples, the tuples are columns corresponds to the header
+        count = result[0][0]
+        return count
+    
     def get_all_email_addr(self):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
@@ -481,6 +488,70 @@ class Database:
         con.close()
         result = [item[0] for item in result]
         return result
+
+    def get_schedules(self):
+        """
+            Return:
+                A list of tuples of (subm_id, subm start date, subm_deadline, 
+                review_deadline, eval_deadline)
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} ORDER BY subm_id").fetchall()
+        con.close()
+        result = [item for item in result if item[0] and item[1]] # if they are not None
+        return result
+
+
+ #=================================================
+
+    def is_subscriber(self, addr):
+        """
+            Return True if addr is in email address list
+            False otherwise.
+            Param:
+                addr: a string that representing an email address
+            Return:
+                True or False (boolean)
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM '{self.TB_EMAIL_LIST}' WHERE address = '{addr}'")\
+                    .fetchone()
+        con.commit()
+        con.close()
+        return result is not None
+
+    def draw_reviewers(self, author):
+        """
+            Randomly draw three reviewers (except this auther),
+            a reviewer can only review maximum 3 different 
+            submissions, finally increment their num of 
+            reviews in num_review.db.
+            Param:
+                author: a string of an author's email address 
+            Return:
+                a list of reviewers' email addresses
+        """
+        reviewers = []
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        # Reviewer who has lowest number of work will have highest priority
+        # number = 0
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
+        # number = 1
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
+        # number = 2
+        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
+            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
+        if len(reviewers) > 3:
+            reviewers = reviewers[0:3]
+        cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
+        con.commit()
+        con.close()
+        return reviewers
 
     def add_addr(self, addr):
         """
@@ -503,21 +574,6 @@ class Database:
             con.close()
             return True
 
-    def get_author_by_prefix(self, prefix):
-        """
-            Param:
-                prefix: beginning string of a student's email address
-            Return:
-                A list of email addresses matched by 'prefix'
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST} WHERE address LIKE '{prefix}%'")\
-                        .fetchall()
-        con.close()
-        result = [item[0] for item in result]
-        return result
-
     def remove_email_addr(self, addresses):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
@@ -525,81 +581,6 @@ class Database:
             cur.execute(f"DELETE FROM {self.TB_EMAIL_LIST} WHERE address = '{addr}' ")
         con.commit()
         con.close()
-
-    def get_subm_by_author(self, author):
-        """
-            Param:
-                author: student's email address
-            Return:
-                A list of (subm_id, subm_received) matched by this author
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT subm_id, subm_received FROM {self.TB_CHAIN} WHERE author = '{author}'\
-                                ORDER BY subm_id")\
-                        .fetchall()
-        con.close()
-        return result
-
-    def get_reviewers_by_subm(self, author, subm):
-        """
-            Param:
-                author: student's email address
-                subm: submission id
-            Return:
-                A list of tuples which contains reviewers and date
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT reviewer, review_received FROM {self.TB_CHAIN} WHERE author = '{author}'\
-                     and subm_id = '{subm}'")\
-                        .fetchall()
-        con.close()
-        return result
-
-    def get_schedules(self):
-        """
-            Return:
-                A list of tuples of (subm_id, subm start date, subm_deadline, 
-                review_deadline, eval_deadline)
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} ORDER BY subm_id").fetchall()
-        con.close()
-        result = [item for item in result if item[0] and item[1]] # if they are not None
-        return result
-
-    def get_reviews_by_reviewer(self, reviewer):
-        """
-            Param:
-                reviewer: student's email address
-            Return:
-                A list of tuples which contains 'authors', 'subm_id', 'reviewed date' and 'rating'
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT author, subm_id, review_received, rating FROM {self.TB_CHAIN}"+\
-                        f" WHERE reviewer = '{reviewer}'")\
-                        .fetchall()
-        con.close()
-        return result
-
-    def get_other_reviewers_by_subm(self, author, subm_id, except_):
-        """
-            Param:
-                author: student's email address
-                subm_id: submission id
-            Return:
-                A list of tuples which contains 'reviewer', 'review_received', 'rating'
-        """
-        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        cur = con.cursor()
-        result = cur.execute(f"SELECT reviewer, rating, review_received FROM {self.TB_CHAIN}"+\
-                f" WHERE author = '{author}' and subm_id = '{subm_id}' and reviewer != '{except_}'")\
-                        .fetchall()
-        con.close()
-        return result
 
 #--------------------------------------------------
     def view_table_information(self, table_name):

@@ -19,6 +19,7 @@ import requests, json, message_temp, time
 from database import Database
 from mail_parser import MailParser
 
+SLEEP_INTERVAL = 1
 
 class MailHandler:
     """
@@ -43,11 +44,11 @@ class MailHandler:
             Sleeping for 5 minites if the inbox is empty 
         """
         while self.app.get_conn_status():
-            mails = self.check_inbox()
-            if len(mails) != 0:
-                self.process_unread(mails)
+            unread_mails = self.check_inbox()
+            if len(unread_mails) != 0:
+                self.process_unread(unread_mails)
             else:
-                time.sleep(60 * 5) # sleep for 5 mins
+                time.sleep(60 * SLEEP_INTERVAL) # sleep for SLEEP_INTERVAL minutes
 
     def login_test(self):
         """===Only used for testing==="""
@@ -100,7 +101,7 @@ class MailHandler:
         for mail in mails:
             msg_id, convo_id, subject, from_, date = self.parser_.parse_mail(mail)
             if not self.db_.is_subscriber(from_):
-                continue #ignore non-subscriber
+                continue # ignore non-subscriber
             self.mark_as_read(msg_id)
             if self.parser_.is_subm(subject):
                 if self.db_.store_subm(msg_id, from_, \
@@ -169,14 +170,15 @@ class MailHandler:
             Param:
                 subm_id: id of the submission to be distributed
         """
-        authors = self.db_.draw_authors(subm_id)
-        for author, msg_id in authors:
+        subms = self.db_.get_subms_by_id(subm_id) # draw submssions from submission table matched subm_id
+        for msg_id, author, _, subm_received in subms:
             reviewers = self.db_.draw_reviewers(author)
             for reviewer in reviewers:
                 mail = self.get_mail_by_msg_id(msg_id)
-                new_conv_id, date_sent = self.send_req(self.parser_.get_review_req(), \
+                review_convo_id, date_sent = self.send_req(self.parser_.get_review_req(), \
                                                         mail, reviewer)
-                self.db_.store_review_req(msg_id, new_conv_id, reviewer, date_sent)
+                self.db_.store_review_req(msg_id, author, subm_id, subm_received, review_convo_id,\
+                                         reviewer, date_sent)
                 if not self.app.get_conn_status():
                     return
 

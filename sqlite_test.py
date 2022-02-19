@@ -110,7 +110,7 @@ import database, os, time
 # con.commit()
 # con.close()
 
-# os.system("rm database.db")
+
 # db = database.Database()
 # db.create_database()
 # db.store_subm('msgid1', 'j4@gmail.com', 1, '2022:2:30')
@@ -126,11 +126,13 @@ import database, os, time
 
 
 def init_one_new_chain():
+    os.system("rm database.db")
     db = database.Database()
+    db.create_database()
 
     print('-'*40)
     print('Original_Chain_TB')
-    db.view_table_information('chain')
+    db.view_table_information('submission')
     print('-'*40)
 
     author = 'j2@gmail.com' # email_address (text)
@@ -153,8 +155,8 @@ def init_one_new_chain():
 
 
     # Flow
-    # db.store_subm(msg_id, author, subm_id, subm_received)
-    db.store_review_req(msg_id, convo_id_review, reviewer, review_req_send)
+    db.store_subm(author, subm_id, subm_received)
+#     db.store_review_req(msg_id, convo_id_review, reviewer, review_req_send)
     # db.store_review(convo_id_review, review_received)
     # print(db.store_eval_req(convo_id_review, convo_id_eval, eval_req_sent))
     # print(db.store_eval(convo_id_eval, rating, comment, eval_received))
@@ -163,8 +165,9 @@ def init_one_new_chain():
 
     print('-'*40)
     print('Updated_Chain_TB')
-    db.view_table_information('chain')
+    db.view_table_information('submission')
     print('-'*40)
+
 
 init_one_new_chain()
 # db = database.Database()
