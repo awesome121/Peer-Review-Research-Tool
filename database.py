@@ -162,7 +162,7 @@ class Database:
         con.commit()
         con.close()
 
-    def update_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
+    def store_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
         # Establish a connection
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         # Get the cursor
@@ -195,7 +195,7 @@ class Database:
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         subm_id = cur.execute(f"SELECT subm_id FROM {self.TB_SCHEDULE} WHERE "+\
-                 f"""is_distributed = 0 AND {time.time_ns()} > "end_date (subm)" """+\
+                 f"""is_distributed = 0 AND {int(time.time())} > "end_date (subm)" """+\
                         " ORDER BY subm_id ").fetchone()
         if subm_id:
             subm_id = subm_id[0]
@@ -555,6 +555,19 @@ class Database:
                         .fetchall()
         con.close()
         result = [item for item in result if item[0] and item[1]] # if they are not None
+        return result
+
+    def get_schedules(self):
+        """
+            Return:
+                A list of tuples of (subm_id, subm start date, subm_deadline, 
+                review_deadline, eval_deadline)
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} ORDER BY subm_id").fetchall()
+        con.close()
+        # result = [item for item in result if item[0] and item[1]] # if they are not None 
         return result
 
 #--------------------------------------------------

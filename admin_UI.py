@@ -1,5 +1,6 @@
 # Created by: PyQt5 UI code generator 5.15.6
 
+from sqlite3 import Timestamp
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 import database, os, time, datetime
 
@@ -313,11 +314,11 @@ class Dashboard:
         self.search_lineedit.setPlaceholderText("Type student's email to search")
         self.search_lineedit.setObjectName("search_lineedit")
         self.gridLayout.addWidget(self.search_lineedit, 0, 2, 1, 1)
-        self.remove_btn = QtWidgets.QPushButton(self.students_tab)
-        self.remove_btn.setStyleSheet("color: rgb(102, 0, 0);") # disable color
-        self.remove_btn.setObjectName("remove_btn")
-        self.remove_btn.setDisabled(True)
-        self.gridLayout.addWidget(self.remove_btn, 3, 2, 1, 1)
+        self.remove_student_btn = QtWidgets.QPushButton(self.students_tab)
+        self.remove_student_btn.setStyleSheet("color: rgb(102, 0, 0);") # disable color
+        self.remove_student_btn.setObjectName("remove_student_btn")
+        self.remove_student_btn.setDisabled(True)
+        self.gridLayout.addWidget(self.remove_student_btn, 3, 2, 1, 1)
         self.student_detail_tb = QtWidgets.QTableWidget(1, 1, self.students_tab)
         self.student_detail_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.student_detail_tb.setObjectName("student_detail_tb")
@@ -338,16 +339,20 @@ class Dashboard:
         self.deadlines_tab.setObjectName("deadlines_tab")
         self.gridLayout_5 = QtWidgets.QGridLayout(self.deadlines_tab)
         self.gridLayout_5.setObjectName("gridLayout_5")
-        self.deadline_tb = QtWidgets.QTableWidget(self.deadlines_tab)
+
+        self.deadline_tb = QtWidgets.QTableWidget(0, 6, self.deadlines_tab)
         self.deadline_tb.setObjectName("deadline_tb")
-        self.deadline_tb.setColumnCount(0)
-        self.deadline_tb.setRowCount(0)
+        self.deadline_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.deadline_tb.setHorizontalHeaderLabels(('Submission', 'Start', \
+                        'Deadline', 'Distributed', 'Review Deadline', 'Evaluation Deadline'))
+        self.deadline_tb.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.gridLayout_5.addWidget(self.deadline_tb, 0, 0, 1, 1)
+
         self.gridLayout_11 = QtWidgets.QGridLayout()
         self.gridLayout_11.setObjectName("gridLayout_11")
-        self.remove_selected_btn = QtWidgets.QPushButton(self.deadlines_tab)
-        self.remove_selected_btn.setObjectName("remove_selected_btn")
-        self.gridLayout_11.addWidget(self.remove_selected_btn, 1, 2, 1, 1)
+        self.remove_schedule = QtWidgets.QPushButton(self.deadlines_tab)
+        self.remove_schedule.setObjectName("remove_schedule")
+        self.gridLayout_11.addWidget(self.remove_schedule, 1, 2, 1, 1)
         self.new_schedule_btn = QtWidgets.QPushButton(self.deadlines_tab)
         self.new_schedule_btn.setObjectName("new_schedule_btn")
         self.gridLayout_11.addWidget(self.new_schedule_btn, 0, 2, 1, 1)
@@ -367,16 +372,15 @@ class Dashboard:
         # add listener
         self.import_btn.clicked.connect(self.import_btn_onclick)
         self.conn_btn.clicked.connect(self.conn_btn_onclick)
-        self.remove_btn.clicked.connect(self.remove_student_btn_onclick)
-        self.add_btn.clicked.connect(self.add_btn_onclick)
+        self.remove_student_btn.clicked.connect(self.remove_student_btn_onclick)
+        self.add_btn.clicked.connect(self.add_student_btn_onclick)
         self.search_lineedit.textEdited.connect(self.search_lineedit_onedited)
         self.student_detail_tb.itemSelectionChanged.connect(self.student_detail_tb_onselect)
         self.new_schedule_btn.clicked.connect(self.new_schedule_btn_onclick)
         self.student_detail_tb.itemDoubleClicked.connect(self.student_doubleClick)
         # update tables
         self.update_student_detail_tb()
-
-
+        self.update_deadline_tb()
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -396,16 +400,16 @@ class Dashboard:
         self.conn_btn.setText(_translate("MainWindow", "Connect"))
         self.tab.setTabText(self.tab.indexOf(self.summary_tab), _translate("MainWindow", "Summary"))
         self.search_lineedit.setPlaceholderText(_translate("MainWindow", "Type email address to search"))
-        self.remove_btn.setText(_translate("MainWindow", "Remove selected student(s)"))
+        self.remove_student_btn.setText(_translate("MainWindow", "Remove selected student(s)"))
         self.import_btn.setText(_translate("MainWindow", "Import Students From CSV"))
         self.add_btn.setText(_translate("MainWindow", "Add a student"))
         self.tab.setTabText(self.tab.indexOf(self.students_tab), _translate("MainWindow", "Students"))
-        self.remove_selected_btn.setText(_translate("MainWindow", "Remove Selected"))
+        self.remove_schedule.setText(_translate("MainWindow", "Remove Selected"))
         self.new_schedule_btn.setText(_translate("MainWindow", "New Schedule"))
         self.tab.setTabText(self.tab.indexOf(self.deadlines_tab), _translate("MainWindow", "Deadlines"))
     
     def new_schedule_btn_onclick(self):
-        self.child = ScheduleDialog(self.controller, self)
+        self.child = ScheduleDialog(self.controller, self, True)
 
     def student_doubleClick(self, item):
         StudentDetailDialog(self.controller, self, item.text())
@@ -426,7 +430,7 @@ class Dashboard:
                 self.controller.db.update_email_list(filename)
                 self.update_student_detail_tb()
 
-    def add_btn_onclick(self):
+    def add_student_btn_onclick(self):
         input_text, ok = QtWidgets.QInputDialog.getText(self.widget, "", "Please type student's email address")
         while ok:
             input_text = input_text.strip()
@@ -472,16 +476,16 @@ class Dashboard:
     def student_detail_tb_onselect(self):
         idxs = self.student_detail_tb.selectedIndexes()
         if len(idxs) == 0:
-            self.remove_btn.setEnabled(False)
-            self.remove_btn.setStyleSheet("color: rgb(102, 0, 0);") # enable color
-            self.remove_btn.setText(f"Remove selected student(s)")
+            self.remove_student_btn.setEnabled(False)
+            self.remove_student_btn.setStyleSheet("color: rgb(102, 0, 0);") # enable color
+            self.remove_student_btn.setText(f"Remove selected student(s)")
         else:
-            self.remove_btn.setEnabled(True)
-            self.remove_btn.setStyleSheet("color: rgb(255, 54, 53);") # enable color
+            self.remove_student_btn.setEnabled(True)
+            self.remove_student_btn.setStyleSheet("color: rgb(255, 54, 53);") # enable color
             if len(idxs) == 1:
-                self.remove_btn.setText(f"Remove 1 selected student")
+                self.remove_student_btn.setText(f"Remove 1 selected student")
             else:
-                self.remove_btn.setText(f"Remove {len(idxs)} selected students")
+                self.remove_student_btn.setText(f"Remove {len(idxs)} selected students")
 
     # def on_changed_combobox_tab_1(self, selected_value):
     #     print("Combbox changed", selected_value)
@@ -524,6 +528,20 @@ class Dashboard:
         self.student_detail_tb.setRowCount(len(addresses))
         for i in range(len(addresses)):
             self.student_detail_tb.setItem(i-1, 1,  QtWidgets.QTableWidgetItem(addresses[i]))
+
+    def update_deadline_tb(self):
+        schedules = self.controller.db.get_schedules()
+        self.deadline_tb.clearContents()
+        self.deadline_tb.setRowCount(len(schedules))
+        for i in range(len(schedules)): 
+            subm_id, subm_start, subm_ddl, is_dist, review_ddl, eval_ddl = schedules[i]
+            is_dist = 'Yes' if is_dist else 'No'
+            self.deadline_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(subm_id)))
+            self.deadline_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(subm_start)))
+            self.deadline_tb.setItem(i, 2,  QtWidgets.QTableWidgetItem(str(subm_ddl)))
+            self.deadline_tb.setItem(i, 3,  QtWidgets.QTableWidgetItem(str(is_dist)))
+            self.deadline_tb.setItem(i, 4,  QtWidgets.QTableWidgetItem(str(review_ddl)))
+            self.deadline_tb.setItem(i, 5,  QtWidgets.QTableWidgetItem(str(eval_ddl)))
 
     def update_students_total(self):
         student_total = self.db.get_subscriber_total()
@@ -671,9 +689,12 @@ class StudentDetailDialog:
             self.top_left_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(date)))
 
 class ScheduleDialog:
-    def __init__(self, controller, parent):
+    def __init__(self, controller, parent, is_new_schedule):
         self.controller = controller
         self.parent = parent
+        self.is_new_schedule = is_new_schedule
+        if is_new_schedule:
+            self.subm_id = len(self.controller.db.get_schedules()) + 1
         self.widget = QtWidgets.QDialog(parent=self.parent.widget)
         self.setupUi(self.widget)
         self.widget.setModal(QtCore.Qt.ApplicationModal)
@@ -688,10 +709,10 @@ class ScheduleDialog:
         self.gridLayout.setObjectName("gridLayout")
         self.eval_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
         self.eval_dtedit.setObjectName("eval_dtedit")
-        self.gridLayout.addWidget(self.eval_dtedit, 3, 1, 1, 1)
+        self.gridLayout.addWidget(self.eval_dtedit, 4, 1, 1, 1)
         self.review_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
         self.review_dtedit.setObjectName("review_dtedit")
-        self.gridLayout.addWidget(self.review_dtedit, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.review_dtedit, 3, 1, 1, 1)
         self.subm_id_lb = QtWidgets.QLabel(Dialog)
         self.subm_id_lb.setAlignment(QtCore.Qt.AlignCenter)
         self.subm_id_lb.setObjectName("subm_id_lb")
@@ -700,35 +721,41 @@ class ScheduleDialog:
         self.line.setFrameShape(QtWidgets.QFrame.VLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
-        self.gridLayout.addWidget(self.line, 0, 2, 4, 1)
+        self.gridLayout.addWidget(self.line, 0, 2, 5, 1)
         self.confirm_btn = QtWidgets.QPushButton(Dialog)
         self.confirm_btn.setObjectName("confirm_btn")
-        self.gridLayout.addWidget(self.confirm_btn, 3, 3, 1, 1)
+        self.gridLayout.addWidget(self.confirm_btn, 4, 3, 1, 1)
         self.timezone_combobox = QtWidgets.QComboBox(Dialog)
         self.timezone_combobox.setObjectName("timezone_combobox")
-        self.gridLayout.addWidget(self.timezone_combobox, 1, 3, 1, 1)
+        self.gridLayout.addWidget(self.timezone_combobox, 0, 4, 1, 1)
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-        self.subm_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
-        self.subm_dtedit.setObjectName("subm_dtedit")
-        self.gridLayout.addWidget(self.subm_dtedit, 1, 1, 1, 1)
+        self.subm_deadline_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        self.subm_deadline_dtedit.setObjectName("subm_deadline_dtedit")
+        self.gridLayout.addWidget(self.subm_deadline_dtedit, 2, 1, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
+        self.gridLayout.addWidget(self.label_4, 4, 0, 1, 1)
         self.label_6 = QtWidgets.QLabel(Dialog)
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_6.setObjectName("label_6")
         self.gridLayout.addWidget(self.label_6, 0, 3, 1, 1)
+        self.label_5 = QtWidgets.QLabel(Dialog)
+        self.label_5.setObjectName("label_5")
+        self.gridLayout.addWidget(self.label_5, 1, 0, 1, 1)
         self.label_3 = QtWidgets.QLabel(Dialog)
         self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.label_3, 3, 0, 1, 1)
         self.label_2 = QtWidgets.QLabel(Dialog)
         self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
         self.cancel_btn = QtWidgets.QPushButton(Dialog)
         self.cancel_btn.setObjectName("cancel_btn")
-        self.gridLayout.addWidget(self.cancel_btn, 3, 4, 1, 1)
+        self.gridLayout.addWidget(self.cancel_btn, 4, 4, 1, 1)
+        self.subm_start_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        self.subm_start_dtedit.setObjectName("subm_start_dtedit")
+        self.gridLayout.addWidget(self.subm_start_dtedit, 1, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
         # # ==================================
         # self.dateeidt = QtWidgets.QDateTimeEdit(self.deadline_tb, calendarPopup=True)
@@ -745,11 +772,12 @@ class ScheduleDialog:
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Schedule"))
-        self.subm_id_lb.setText(_translate("Dialog", "1"))
+        Dialog.setWindowTitle(_translate("Dialog", "New Schedule"))
+        self.subm_id_lb.setText(_translate("Dialog", str(self.subm_id)))
         self.confirm_btn.setText(_translate("Dialog", "Confirm"))
         self.label.setText(_translate("Dialog", "Submission ID"))
         self.label_4.setText(_translate("Dialog", "Evaluation Deadline"))
+        self.label_5.setText(_translate("Dialog", "Submission Start"))
         self.label_6.setText(_translate("Dialog", "Time Zone"))
         self.label_3.setText(_translate("Dialog", "Review Deadline"))
         self.label_2.setText(_translate("Dialog", "Submission Deadline (Distribution Time)"))
@@ -771,16 +799,22 @@ class ScheduleDialog:
         self.widget.hide()
 
     def confirm_btn_onclick(self):
-        subm_deadline = datetime.datetime.strptime(self.subm_dtedit.text(), "%d/%m/%y %I:%M %p")
-        review_deadline = datetime.datetime.strptime(self.review_dtedit.text(), "%d/%m/%y %I:%M %p")
-        eval_deadline = datetime.datetime.strptime(self.eval_dtedit.text(), "%d/%m/%y %I:%M %p")
-        # print(subm_deadline.timestamp())
-        # self.controller.db.
-
+        subm_start = int(datetime.datetime.strptime(self.subm_start_dtedit.text(), "%d/%m/%y %I:%M %p")
+                        .timestamp())
+        subm_deadline = int(datetime.datetime.strptime(self.subm_deadline_dtedit.text(), "%d/%m/%y %I:%M %p")
+                        .timestamp())
+        review_deadline = int(datetime.datetime.strptime(self.review_dtedit.text(), "%d/%m/%y %I:%M %p")
+                        .timestamp())
+        eval_deadline = int(datetime.datetime.strptime(self.eval_dtedit.text(), "%d/%m/%y %I:%M %p")
+                        .timestamp())
+        if self.is_new_schedule:
+            self.controller.db.store_schedule(self.subm_id, subm_start, subm_deadline, \
+                                        review_deadline, eval_deadline)
+        self.parent.update_deadline_tb()
+        self.widget.done(self.widget.Accepted)
 
     def cancel_btn_onclick(self):
         self.widget.done(self.widget.Accepted)
-
 
 class DisconnectDialog:
     def __init__(self, controller, parent) -> None:
