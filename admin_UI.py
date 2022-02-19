@@ -557,6 +557,7 @@ class StudentDetailDialog:
         self.widget.setModal(QtCore.Qt.ApplicationModal)
         self.widget.show()
         self.update_subm_panel_as_author()
+        self.update_review_panel_as_reviewer()
         self.widget.exec()
 
     def setupUi(self, Dialog):
@@ -570,18 +571,26 @@ class StudentDetailDialog:
         self.addr_lb = QtWidgets.QLabel(Dialog)
         self.addr_lb.setObjectName("addr_lb")
         self.gridLayout.addWidget(self.addr_lb, 0, 0, 1, 1)
-        self.bottom_left_tb = QtWidgets.QTableWidget(Dialog)
+        self.bottom_left_tb = QtWidgets.QTableWidget(0, 4, Dialog)
         self.bottom_left_tb.setObjectName("bottom_left_tb")
-        self.bottom_left_tb.setColumnCount(0)
-        self.bottom_left_tb.setRowCount(0)
+        self.bottom_left_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.bottom_left_tb.setHorizontalHeaderLabels(('Author', 'Submission ID', 'Review Date', 'Rating'))
+        self.bottom_left_tb.horizontalHeader().setSectionResizeMode(\
+                                            QtWidgets.QHeaderView.Stretch)
+        self.bottom_left_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.bottom_left_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
+
         self.gridLayout.addWidget(self.bottom_left_tb, 6, 0, 1, 1)
         self.top_right_tb = QtWidgets.QTableWidget(0, 2, Dialog)
         self.top_right_tb.setObjectName("top_right_tb")
         self.top_right_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.top_right_tb.setHorizontalHeaderLabels(('Reviewer','Date'))
+        self.top_right_tb.setHorizontalHeaderLabels(('Reviewer', 'Date'))
         self.top_right_tb.horizontalHeader().setSectionResizeMode(\
                                             QtWidgets.QHeaderView.Stretch)
         self.top_right_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.top_right_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
 
         self.gridLayout.addWidget(self.top_right_tb, 3, 2, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
@@ -592,11 +601,17 @@ class StudentDetailDialog:
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 6, 1, 1, 1)
-        self.bottom_right_tb = QtWidgets.QTableWidget(Dialog)
+
+        self.bottom_right_tb = QtWidgets.QTableWidget(0, 3, Dialog)
         self.bottom_right_tb.setObjectName("bottom_right_tb")
-        self.bottom_right_tb.setColumnCount(0)
-        self.bottom_right_tb.setRowCount(0)
+        self.bottom_right_tb.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.bottom_right_tb.setHorizontalHeaderLabels(('Reviewer', 'Rating', 'Date'))
+        self.bottom_right_tb.horizontalHeader().setSectionResizeMode(\
+                                            QtWidgets.QHeaderView.Stretch)
+        self.bottom_right_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.bottom_right_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.gridLayout.addWidget(self.bottom_right_tb, 6, 2, 1, 1)
+
         self.top_textedit = QtWidgets.QTextEdit(Dialog)
         self.top_textedit.setObjectName("top_textedit")
         self.gridLayout.addWidget(self.top_textedit, 2, 2, 1, 1)
@@ -632,6 +647,7 @@ class StudentDetailDialog:
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         # listener
         self.top_left_tb.itemSelectionChanged.connect(self.top_left_tb_itemSelected)
+        self.bottom_left_tb.itemSelectionChanged.connect(self.bottom_left_tb_itemSelected)
         print('listener')
 
     def retranslateUi(self, Dialog):
@@ -642,6 +658,8 @@ class StudentDetailDialog:
         self.label.setText(_translate("Dialog", "has submitted:"))
         self.label_2.setText(_translate("Dialog", "has reviewed:"))
 
+
+    # Events handeler
     def top_left_tb_itemSelected(self):
         if self.top_left_tb.selectedItems():
             item = self.top_left_tb.selectedItems()[0] # table is in single selection mode
@@ -649,26 +667,68 @@ class StudentDetailDialog:
             subm_id_col = 0
             subm_id = self.top_left_tb.item(selected_row, subm_id_col).text()
             self.update_review_panel_as_author(subm_id)
+    
+    def bottom_left_tb_itemSelected(self):
+        if self.bottom_left_tb.selectedItems():
+            item = self.bottom_left_tb.selectedItems()[0] # table is in single selection mode
+            selected_row = self.bottom_left_tb.row(item)
+            author_col, subm_id_col = 0, 1
+            author = self.bottom_left_tb.item(selected_row, author_col).text()
+            subm_id = self.bottom_left_tb.item(selected_row, subm_id_col).text()
+            self.update_other_review_panel_as_reviewer(author, subm_id)
 
-    def update_review_panel_as_author(self, subm_id):
-        reviewers = self.controller.db.get_reviewers_by_subm(self.email_addr, subm_id)
-        self.top_right_tb.clearContents()
-        self.top_right_tb.setRowCount(len(reviewers))
-        for i in range(len(reviewers)):
-            reviewer = reviewers[i][0]
-            date = reviewers[i][1]
-            self.top_right_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(reviewer)))
-            self.top_right_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(date)))
-
+    ## These tables will be updated once the dialoge open
+    # Top_left_tb
     def update_subm_panel_as_author(self):
         subm_list_as_author = self.controller.db.get_subm_by_author(self.email_addr)
         self.top_left_tb.clearContents()
         self.top_left_tb.setRowCount(len(subm_list_as_author))
         for i in range(len(subm_list_as_author)):
-            subm_id = subm_list_as_author[i][0]
-            date = subm_list_as_author[i][1]
-            self.top_left_tb.setItem(i, 0,  QtWidgets.QTableWidgetItem(str(subm_id)))
-            self.top_left_tb.setItem(i, 1,  QtWidgets.QTableWidgetItem(str(date)))
+            subm_id, date = subm_list_as_author[i][0], subm_list_as_author[i][1]
+            subm_id_col, date_col = 0, 1
+            self.top_left_tb.setItem(i, subm_id_col, QtWidgets.QTableWidgetItem(str(subm_id)))
+            self.top_left_tb.setItem(i, date_col, QtWidgets.QTableWidgetItem(str(date)))
+
+    # Bottom_left_tb
+    def update_review_panel_as_reviewer(self):
+        review_list_as_reviewer = self.controller.db.get_reviews_by_reviewer(self.email_addr)
+        self.bottom_left_tb.clearContents()
+        self.bottom_left_tb.setRowCount(len(review_list_as_reviewer))
+        for i in range(len(review_list_as_reviewer)):
+            author, subm_id, review_date, rating = review_list_as_reviewer[i][0], review_list_as_reviewer[i][1], review_list_as_reviewer[i][2], review_list_as_reviewer[i][3]
+            author_col, subm_id_col, review_date_col, rating_col = 0, 1, 2, 3
+            self.bottom_left_tb.setItem(i, author_col, QtWidgets.QTableWidgetItem(str(author)))
+            self.bottom_left_tb.setItem(i, subm_id_col, QtWidgets.QTableWidgetItem(str(subm_id)))
+            self.bottom_left_tb.setItem(i, review_date_col, QtWidgets.QTableWidgetItem(str(review_date)))
+            self.bottom_left_tb.setItem(i, rating_col, QtWidgets.QTableWidgetItem(str(rating)))
+
+
+
+    ## These tables will be updated once the events happend
+    # Top_right_tb
+    def update_review_panel_as_author(self, subm_id):
+        reviewers = self.controller.db.get_reviewers_by_subm(self.email_addr, subm_id)
+        self.top_right_tb.clearContents()
+        self.top_right_tb.setRowCount(len(reviewers))
+        for i in range(len(reviewers)):
+            reviewer, date  = reviewers[i][0], reviewers[i][1]
+            review_col, date_col = 0, 1
+            self.top_right_tb.setItem(i, review_col, QtWidgets.QTableWidgetItem(str(reviewer)))
+            self.top_right_tb.setItem(i, date_col, QtWidgets.QTableWidgetItem(str(date)))
+
+    # Bottom_right_tb
+    def update_other_review_panel_as_reviewer(self, author, subm_id):
+        reviews = self.controller.db.get_other_reviewers_by_subm(author, subm_id, self.email_addr)
+        self.bottom_right_tb.clearContents()
+        self.bottom_right_tb.setRowCount(len(reviews))
+        for i in range(len(reviews)):
+            reviewer, rating, date  = reviews[i]
+            review_col, raing_col, date_col = 0, 1, 2
+            self.bottom_right_tb.setItem(i, review_col, QtWidgets.QTableWidgetItem(str(reviewer)))
+            self.bottom_right_tb.setItem(i, raing_col, QtWidgets.QTableWidgetItem(str(rating)))
+            self.bottom_right_tb.setItem(i, date_col, QtWidgets.QTableWidgetItem(str(date)))
+    
+
 
 class ScheduleDialog:
     def __init__(self, controller, parent):

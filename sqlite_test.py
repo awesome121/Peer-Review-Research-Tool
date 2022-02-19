@@ -1,4 +1,5 @@
 from socket import timeout
+from random import randint
 import sqlite3, requests
 import sys
 from sys import stdout
@@ -110,9 +111,9 @@ import database, os, time
 # con.close()
 
 # os.system("rm database.db")
-db = database.Database()
+# db = database.Database()
 # db.create_database()
-db.store_subm('msgid1', 'j2@gmail.com', 1, '2022:2:19')
+# db.store_subm('msgid1', 'j4@gmail.com', 1, '2022:2:30')
 
 # con = sqlite3.connect('database.db')
 # cur = con.cursor()
@@ -122,10 +123,52 @@ db.store_subm('msgid1', 'j2@gmail.com', 1, '2022:2:19')
 # con.close()
 
 #[('msgid', 'j2@gmail.com', 2, '2022:2:19', 'review_convo_id', 'j4@gmail.com', '2022:2:20', '2022:2:21', 'eval_convo_id', 7, 'good', '2022:2:22', '2022:2:23')]
+
+
+def init_one_new_chain():
+    db = database.Database()
+
+    print('-'*40)
+    print('Original_Chain_TB')
+    db.view_table_information('chain')
+    print('-'*40)
+
+    author = 'j2@gmail.com' # email_address (text)
+    subm_id = 1 # integer
+    reviewer = 'j3@gmail.com' # email_address (text)
+    
+
+    msg_id = randint(1, 10000000) # text
+    convo_id_review = randint(1, 10000000) # text
+    convo_id_eval = randint(1, 10000000) # text
+
+    subm_received = '2021:10:25 22:10' # text
+    review_req_send = '2021:10:25 23:10' # text
+    review_received = '2021:10:26 02:10' # text
+    eval_req_sent = '2021:10:26 12:10' # text
+    eval_received = '2021:10:26 22:10' # text
+
+    rating = 9 # integer
+    comment = 'Good' # text
+
+
+    # Flow
+    # db.store_subm(msg_id, author, subm_id, subm_received)
+    db.store_review_req(msg_id, convo_id_review, reviewer, review_req_send)
+    # db.store_review(convo_id_review, review_received)
+    # print(db.store_eval_req(convo_id_review, convo_id_eval, eval_req_sent))
+    # print(db.store_eval(convo_id_eval, rating, comment, eval_received))
+
+
+
+    print('-'*40)
+    print('Updated_Chain_TB')
+    db.view_table_information('chain')
+    print('-'*40)
+
+init_one_new_chain()
 # db = database.Database()
 # db.view_table_information('chain')
-# print(db.store_eval_req('review_convo_id', 'eval_convo_id', '2022:2:22'))
-# print(db.store_eval('eval_convo_id', 7, 'good', '2022:2:23'))
 
 # con = sqlite3.connect('database.db')
 # cur = con.cursor()
