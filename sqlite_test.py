@@ -126,23 +126,23 @@ import database, os, time
 
 
 def init_one_new_chain():
-    os.system("rm database.db")
+#     os.system("rm database.db")
     db = database.Database()
-    db.create_database()
+#     db.create_database()
 
     print('-'*40)
-    print('Original_Chain_TB')
-    db.view_table_information('submission')
+    print('Original_TB')
+    db.view_table_information('chain')
     print('-'*40)
 
     author = 'j2@gmail.com' # email_address (text)
     subm_id = 1 # integer
-    reviewer = 'j3@gmail.com' # email_address (text)
+    reviewer = 'j5@gmail.com' # email_address (text)
     
 
     msg_id = randint(1, 10000000) # text
-    convo_id_review = randint(1, 10000000) # text
-    convo_id_eval = randint(1, 10000000) # text
+    convo_id_review = f'j2->j4'
+    convo_id_eval = f'j5->j2' # text
 
     subm_received = '2021:10:25 22:10' # text
     review_req_send = '2021:10:25 23:10' # text
@@ -155,17 +155,17 @@ def init_one_new_chain():
 
 
     # Flow
-    db.store_subm(author, subm_id, subm_received)
-#     db.store_review_req(msg_id, convo_id_review, reviewer, review_req_send)
-    # db.store_review(convo_id_review, review_received)
-    # print(db.store_eval_req(convo_id_review, convo_id_eval, eval_req_sent))
-    # print(db.store_eval(convo_id_eval, rating, comment, eval_received))
+#     db.store_subm(msg_id, author, subm_id, subm_received)
+#     db.store_review_req('7078381', 'j2@gmail.com', 1, '2021:10:25 22:10', convo_id_review, reviewer, review_req_send)
+#     db.store_review(convo_id_review, review_received)
+#     print(db.store_eval_req(convo_id_review, convo_id_eval, eval_req_sent))
+#     print(db.store_eval(convo_id_eval, rating, comment, eval_received))
 
 
 
     print('-'*40)
-    print('Updated_Chain_TB')
-    db.view_table_information('submission')
+    print('Updated_TB')
+    db.view_table_information('chain')
     print('-'*40)
 
 

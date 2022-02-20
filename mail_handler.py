@@ -44,11 +44,16 @@ class MailHandler:
             Sleeping for 5 minites if the inbox is empty 
         """
         while self.app.get_conn_status():
-            unread_mails = self.check_inbox()
-            if len(unread_mails) != 0:
-                self.process_unread(unread_mails)
-            else:
-                time.sleep(60 * SLEEP_INTERVAL) # sleep for SLEEP_INTERVAL minutes
+            try:
+                unread_mails = self.check_inbox()
+                if len(unread_mails) != 0:
+                    self.process_unread(unread_mails)
+                else:
+                    time.sleep(60 * SLEEP_INTERVAL) # sleep for SLEEP_INTERVAL minutes
+            except:
+                self.app.disconnect()
+                print('connection lost')
+                break
 
     def login_test(self):
         """===Only used for testing==="""

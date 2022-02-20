@@ -8,6 +8,7 @@
         schedule
         num_review
         chain
+        connection
 """
 
 
@@ -63,7 +64,7 @@ class Database:
         self.init_schedule(con)
         self.init_num_review(con)
         self.init_chain(con)
-        # self.init_connection(con)
+        self.init_connection(con)
         con.close()
 
     def init_email_list(self, con):
@@ -150,7 +151,7 @@ class Database:
                 connection history table in database.db
         """
         cur = con.cursor()
-        cur.execute(f"CREATE TABLE {self.TB_CONNECTION} " + "start_date integer, end_date integer")
+        cur.execute(f"CREATE TABLE {self.TB_CONNECTION} (start_date integer, end_date integer)")
         con.commit()
 
 #--------------------------------------------------
@@ -173,16 +174,33 @@ class Database:
         con.commit()
         con.close()
 
-    # def update_connection(self):
-    #     # Establish a connection
-    #     con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-    #     # Get the cursor
-    #     cur = con.cursor()
-    #     cur.execute(f"UPDATE '{self.TB_CONNECTION}' (subm_id, start_date, " +\
-    #                     " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
-    #                     " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", )
-    #     con.commit()
-    #     con.close()
+    def update_connection(self, start_date, end_date):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        cur.execute(f"UPDATE {self.TB_CONNECTION} SET end_date = {end_date} \
+                    WHERE start_date = {start_date}")
+        con.commit()
+        con.close()
+
+    def update_schedule(self, subm_id, subm_start, subm_deadline, \
+                                        review_deadline, eval_deadline):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        cur.execute(f"UPDATE {self.TB_SCHEDULE} SET start_date = {subm_start} \
+                        ,'end_date (subm)' = {subm_deadline}, 'end_date (review)'\
+                         = {review_deadline}, 'end_date (eval)' = {eval_deadline}\
+                     WHERE subm_id = {subm_id}")
+        con.commit()
+        con.close()
+            
+
+    def store_connection(self, start_date):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        cur.execute(f"INSERT INTO {self.TB_CONNECTION} (start_date, end_date) \
+                    values (?, ?)", (start_date, start_date))
+        con.commit()
+        con.close()
 
     def store_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
         # Establish a connection
@@ -489,17 +507,31 @@ class Database:
         result = [item[0] for item in result]
         return result
 
-    def get_schedules(self):
+    def get_schedule(self, subm_id=None):
         """
             Return:
-                A list of tuples of (subm_id, subm start date, subm_deadline, 
+                A list of tuples of (subm_id, subm start date, is_distributed, subm_deadline, 
                 review_deadline, eval_deadline)
         """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} ORDER BY subm_id").fetchall()
+        if subm_id:
+            result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}").fetchone()
+        else:
+            result = cur.execute(f"SELECT * FROM {self.TB_SCHEDULE} ORDER BY subm_id").fetchall()
         con.close()
-        result = [item for item in result if item[0] and item[1]] # if they are not None
+        return result
+
+    def get_last_conn(self):
+        """
+            Return the last connection (start_date, end_date)
+        """
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT * FROM {self.TB_CONNECTION} ORDER BY start_date DESC").fetchone()
+        con.close()
+        if result is None:
+            return None, None
         return result
 
 
@@ -581,6 +613,21 @@ class Database:
             cur.execute(f"DELETE FROM {self.TB_EMAIL_LIST} WHERE address = '{addr}' ")
         con.commit()
         con.close()
+
+    def remove_schedule(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        cur.execute(f"DELETE FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}")
+        con.commit()
+        con.close()
+
+    def is_schedule_distributed(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT is_distributed FROM {self.TB_SCHEDULE} \
+                        WHERE subm_id = {subm_id}").fetchone()[0]
+        con.close()
+        return result == 1
 
 #--------------------------------------------------
     def view_table_information(self, table_name):

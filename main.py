@@ -9,11 +9,11 @@ class App:
         self.init_param()
         self.load_config()
         # self.connect() # event-driven function
+        self.db = database.Database()
         if os.path.exists("database.db"):
             self.UI_controller = admin_UI.Controller(self, True)
             self.UI_controller.land_on_dashboard()
         else:
-            self.db = database.Database()
             self.db.create_database()
             self.UI_controller = admin_UI.Controller(self, False)
     
@@ -53,6 +53,7 @@ class App:
         while self.is_connected:
             self.check_deadline()
             self.refresh_token()
+            self.refresh_last_conn_to()
             time.sleep(1)
         self.init_param()
     
@@ -120,7 +121,10 @@ class App:
     
     def refresh_token(self):
         accounts = self.app.get_accounts()
-        result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
+        if accounts:
+            result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
+        else:
+            result = self.app.acquire_token_silent(self.scopes_)
         print(result['expires_in'], threading.get_ident(), threading.active_count())
         # print(sys.getrefcount(self))
         if self.token != result['access_token']:
@@ -130,6 +134,9 @@ class App:
             self.listener.auth_header_ = auth_header
             if self.distributor:
                 self.distributor.auth_header_ = auth_header
+
+    def refresh_last_conn_to(self):
+        pass
 
     def set_auth_success(self):
         self.is_auth_success = True
@@ -144,7 +151,7 @@ class App:
         self.flow['expires_at'] = 0
 
     def disconnect(self):
-        self.is_connected = False
+        self.init_param()
 
     def get_conn_status(self):
         return self.is_connected
