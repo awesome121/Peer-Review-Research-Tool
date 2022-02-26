@@ -6,7 +6,6 @@
         email_list
         submission
         schedule
-        num_review
         chain
         connection
 """
@@ -30,7 +29,6 @@ class Database:
         self.TB_EMAIL_LIST = "email_list"
         self.TB_SUBMISSION = "submission"
         self.TB_SCHEDULE = "schedule"
-        self.TB_NUM_REVIEW = "num_review"
         self.TB_CHAIN = "chain"
         self.TB_CONNECTION = "connection"
         # Database constants:
@@ -45,15 +43,14 @@ class Database:
         """ 
             ===This function can be called only on initialising database===
             This function further calls subsequent functions init_email_list, 
-            init_schedule, init_num_review, init_chain to initialise tables
-            email_list, schedule, num_review, and chain respectively.
+            init_schedule, init_chain to initialise tables
+            email_list, schedule, and chain respectively.
 
             Resourses (Provided by the user):
                 email_list: email address of subscribers
             Tables (Generated):
                 schedule: subm_id, start_date, end_date (subm), is_distributed, 
                         end_date (review), end_date (eval)
-                num_review: currently number of received distribution for each submission 
                 chain: a joined table
         """
         # Establish a connection
@@ -62,7 +59,6 @@ class Database:
         self.init_email_list(con)
         self.init_submission(con)
         self.init_schedule(con)
-        self.init_num_review(con)
         self.init_chain(con)
         self.init_connection(con)
         con.close()
@@ -90,7 +86,7 @@ class Database:
         """
         cur = con.cursor()
         cur.execute(f"CREATE TABLE {self.TB_SUBMISSION} ('msg_id (subm)' text,\
-                    author text, subm_id integer, subm_received text)")
+                    author text, subm_id integer, subm_received text, num_review integer)")
         con.commit()
 
     def init_schedule(self, con):
@@ -105,23 +101,6 @@ class Database:
         cur.execute(f"CREATE TABLE '{self.TB_SCHEDULE}' (subm_id integer, " +\
             "start_date integer, 'end_date (subm)' integer, is_distributed integer, " +\
             "'end_date (review)' integer, 'end_date (eval)' integer)")
-        con.commit()
-
-    def init_num_review(self, con):
-        """
-            ===This function can be called only on initialising database===
-            Param:
-                connection to database.db
-            Generates:
-                num_review table in database.db
-        """
-        cur = con.cursor()
-        cur.execute(f"SELECT * from {self.TB_EMAIL_LIST}")
-        lines = cur.fetchall()
-        lines = [(line[0], 0) for line in lines]
-        cur.execute(f"CREATE TABLE '{self.TB_NUM_REVIEW}' (reviewer text, number integer)")
-        cur.executemany(f"INSERT INTO '{self.TB_NUM_REVIEW}' (reviewer, number) values (?, ?)",\
-                         lines)
         con.commit()
 
     def init_chain(self, con):
@@ -233,8 +212,8 @@ class Database:
             con.close()
             return False
         else:
-            cur.execute(f"INSERT INTO {self.TB_SUBMISSION} ('msg_id (subm)', author, subm_id, subm_received)\
-                        values (?, ?, ?, ?)", (msg_id, author, subm_id, subm_received))
+            cur.execute(f"INSERT INTO {self.TB_SUBMISSION} ('msg_id (subm)', author, subm_id, subm_received,\
+                         num_review) values (?, ?, ?, ?, 0)", (msg_id, author, subm_id, subm_received))
             con.commit()
             con.close()
             return True
@@ -376,7 +355,7 @@ class Database:
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         subm_id = cur.execute(f"SELECT subm_id FROM {self.TB_SCHEDULE} WHERE "+\
-                 f"""is_distributed = 0 AND {int(time.time())} > "end_date (subm)" """+\
+                 f"""is_distributed = 0 AND {int(time.time())} >= "end_date (subm)" """+\
                         " ORDER BY subm_id ").fetchone()
         if subm_id:
             subm_id = subm_id[0]
@@ -395,7 +374,7 @@ class Database:
         """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
-        result = cur.execute(f"SELECT * FROM {self.TB_SUBMISSION} subm_id = {subm_id}")\
+        result = cur.execute(f"SELECT * FROM {self.TB_SUBMISSION} WHERE subm_id = {subm_id}")\
                     .fetchall()
         return result
 
@@ -509,8 +488,10 @@ class Database:
 
     def get_schedule(self, subm_id=None):
         """
+            Param:
+                subm_id: If given, return a specific schedule, otherwise return all schedules
             Return:
-                A list of tuples of (subm_id, subm start date, is_distributed, subm_deadline, 
+                A list of tuples of (subm_id, subm start date, subm_deadline, is_distributed
                 review_deadline, eval_deadline)
         """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
@@ -559,7 +540,7 @@ class Database:
             Randomly draw three reviewers (except this auther),
             a reviewer can only review maximum 3 different 
             submissions, finally increment their num of 
-            reviews in num_review.db.
+            reviews in submission table.
             Param:
                 author: a string of an author's email address 
             Return:
@@ -570,19 +551,20 @@ class Database:
         cur = con.cursor()
         # Reviewer who has lowest number of work will have highest priority
         # number = 0
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
+        reviewers += cur.execute(f"SELECT author FROM '{self.TB_SUBMISSION}' " +\
+            f"WHERE num_review < 3 and author != '{author}' and num_review = 0 ORDER BY RANDOM() LIMIT 3").fetchall()
         # number = 1
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
+        reviewers += cur.execute(f"SELECT author FROM '{self.TB_SUBMISSION}' " +\
+            f"WHERE num_review < 3 and author != '{author}' and num_review = 1 ORDER BY RANDOM() LIMIT 3").fetchall()
         # number = 2
-        reviewers += cur.execute(f"SELECT reviewer FROM '{self.TB_NUM_REVIEW}' " +\
-            f"WHERE number < 3 and reviewer != '{author}' and number = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
+        reviewers += cur.execute(f"SELECT author FROM '{self.TB_SUBMISSION}' " +\
+            f"WHERE num_review < 3 and author != '{author}' and num_review = 2 ORDER BY RANDOM() LIMIT 3").fetchall()
         if len(reviewers) > 3:
             reviewers = reviewers[0:3]
-        cur.executemany(f"UPDATE {self.TB_NUM_REVIEW} SET number = number + 1 WHERE reviewer = (?)", reviewers)
+        cur.executemany(f"UPDATE {self.TB_SUBMISSION} SET num_review = num_review + 1 WHERE author = (?)", reviewers)
         con.commit()
         con.close()
+        reviewers = [reviewer[0] for reviewer in reviewers]
         return reviewers
 
     def add_addr(self, addr):
@@ -621,13 +603,55 @@ class Database:
         con.commit()
         con.close()
 
-    def is_schedule_distributed(self, subm_id):
+    def exist_schedule(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        result = cur.execute(f"SELECT COUNT(*) FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}")\
+                                .fetchone()
+        con.close()
+        count = result[0]
+        return count == 1
+        
+
+    def is_subm_distributed(self, subm_id):
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT is_distributed FROM {self.TB_SCHEDULE} \
                         WHERE subm_id = {subm_id}").fetchone()[0]
         con.close()
         return result == 1
+
+    def is_subm_started(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        subm_start_date = cur.execute(f'SELECT start_date FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
+        con.commit()
+        con.close()
+        return time.time() > subm_start_date
+    
+    def is_subm_end(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        subm_end_date = cur.execute(f'SELECT "end_date (subm)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
+        con.commit()
+        con.close()
+        return time.time() > subm_end_date
+
+    def is_review_end(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        review_end_date = cur.execute(f'SELECT "end_date (review)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
+        con.commit()
+        con.close()
+        return time.time() > review_end_date
+
+    def is_eval_end(self, subm_id):
+        con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
+        cur = con.cursor()
+        eval_end_date = cur.execute(f'SELECT "end_date (eval)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
+        con.commit()
+        con.close()
+        return time.time() > eval_end_date
 
 #--------------------------------------------------
     def view_table_information(self, table_name):

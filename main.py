@@ -1,14 +1,11 @@
 import os, time, threading, sys, msal, json
 import admin_UI, database
 from mail_handler import MailHandler
-# os.system("rm database.db")
-# db.create_database()
 
 class App:
     def __init__(self):
         self.init_param()
         self.load_config()
-        # self.connect() # event-driven function
         self.db = database.Database()
         if os.path.exists("database.db"):
             self.UI_controller = admin_UI.Controller(self, True)
@@ -60,7 +57,9 @@ class App:
     def check_deadline(self):
         subm_id = self.db.get_undistributed_subm_id()
         if subm_id:
-            threading.Thread(target=self.create_distributor, args=(subm_id,))
+            print(f"Creating distributor for {subm_id}")
+            self.distributor_t = threading.Thread(target=self.create_distributor, args=(subm_id,))
+            self.distributor_t.start()
 
     def create_listener(self):
         auth_header = {'Authorization': 'Bearer ' + self.token}
@@ -68,6 +67,7 @@ class App:
         self.listener.listen()
 
     def create_distributor(self, subm_id):
+        print(f"Created distributor for {subm_id}", flush=True)
         auth_header = {'Authorization': 'Bearer ' + self.token}
         self.distributor = MailHandler(self, auth_header)
         self.distributor.distribute_subm(subm_id)
@@ -120,15 +120,16 @@ class App:
             return
     
     def refresh_token(self):
+        time.sleep(0.5)
         accounts = self.app.get_accounts()
         if accounts:
             result = self.app.acquire_token_silent(self.scopes_, account=accounts[0])
         else:
-            result = self.app.acquire_token_silent(self.scopes_)
+            print("Cannot refresh token")
+            self.disconnect()
+            return
         print(result['expires_in'], threading.get_ident(), threading.active_count())
-        # print(sys.getrefcount(self))
         if self.token != result['access_token']:
-            # print(result['access_token'])
             self.token = result['access_token']
             auth_header = {'Authorization': 'Bearer ' + self.token}
             self.listener.auth_header_ = auth_header

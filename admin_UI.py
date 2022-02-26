@@ -4,10 +4,10 @@ import database, os, time, datetime
 
 import sys
 
+MAX_NUM_SUBMISSION = 20
+
 class Controller:
     def __init__(self, app, has_account) -> None:
-        # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-        # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         self.app = app
         self.db = database.Database()
         self.qtapp = QtWidgets.QApplication(sys.argv)
@@ -84,11 +84,15 @@ class Controller:
                 self.update_controller_end_date_var()
                 self.update_connection_db()
                 self.dashboard.update_conn_to_lb()
+                print(counter)
+                if counter % 60 == 0:
+                    self.dashboard.update_deadline_tb()
+                    counter = 0
 
             self.conn_timer = QtCore.QTimer()
-            self.conn_timer.timeout.connect(self.detect_conn)
+            self.conn_timer.timeout.connect(lambda : self.detect_conn(counter+1))
             self.conn_timer.setSingleShot(True)
-            self.conn_timer.setInterval(1)
+            self.conn_timer.setInterval(1000)
             self.conn_timer.start()
         else:
             if self.dashboard:
@@ -220,8 +224,7 @@ class LoginDialog:
                 self.widget.done(self.widget.Accepted)
                 self.controller.new_connection()
                 if not self.controller.dashboard:
-                    self.controller.land_on_dashboard()
-                
+                    self.controller.land_on_dashboard()         
             else:
                 print('waiting for token')
                 self.auth_timer = QtCore.QTimer()
@@ -229,10 +232,6 @@ class LoginDialog:
                 self.auth_timer.setSingleShot(True)
                 self.auth_timer.setInterval(1000)
                 self.auth_timer.start()
-
-   
-    
-        
 
     def back_btn_onclick(self):
         if self.controller.has_auth_flow():
@@ -485,8 +484,14 @@ class Dashboard:
                     selected_row = self.deadline_tb.row(item)
                     subm_id_col = 0
                     subm_id = self.deadline_tb.item(selected_row, subm_id_col).text()
-                    self.controller.db.remove_schedule(int(subm_id))
-                    self.update_deadline_tb()
+                    if self.controller.db.is_subm_distributed(int(subm_id)): # it's already distributed
+                        QtWidgets.QMessageBox.warning(self.widget, 'Cannot Remove This Schedule', \
+                                    "This submission has already distributed")
+                    else:
+                        self.controller.db.remove_schedule(int(subm_id))
+                        self.update_deadline_tb()
+                        self.remove_schedule_btn.setEnabled(False)
+                        self.remove_schedule_btn.setStyleSheet("color: rgb(102, 0, 0);") # disable color
             
 
     def student_doubleClick(self, item):
@@ -768,7 +773,6 @@ class StudentDetailDialog:
         # listener
         self.top_left_tb.itemSelectionChanged.connect(self.top_left_tb_itemSelected)
         self.bottom_left_tb.itemSelectionChanged.connect(self.bottom_left_tb_itemSelected)
-        print('listener')
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -859,6 +863,8 @@ class ScheduleDialog:
         self.setupUi(self.widget)
         if not is_new_schedule:
             self.update_existing_schedule()
+        else:
+            self.init_new_schedule()
         self.widget.setModal(QtCore.Qt.ApplicationModal)
         self.widget.show()
 
@@ -871,11 +877,9 @@ class ScheduleDialog:
         self.gridLayout.setObjectName("gridLayout")
         self.eval_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
         self.eval_dtedit.setObjectName("eval_dtedit")
-        self.eval_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.gridLayout.addWidget(self.eval_dtedit, 4, 1, 1, 1)
         self.review_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
         self.review_dtedit.setObjectName("review_dtedit")
-        self.review_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.gridLayout.addWidget(self.review_dtedit, 3, 1, 1, 1)
         if not self.is_new_schedule:
             self.subm_id_lb = QtWidgets.QLabel(Dialog)
@@ -889,7 +893,7 @@ class ScheduleDialog:
             self.gridLayout.addWidget(self.subm_id_combobox, 0, 1, 1, 1)
             schedules = self.controller.db.get_schedule()
             subm_ids = [schedule[0] for schedule in schedules]
-            self.subm_id_combobox.addItems([str(id) for id in range(1, 11)\
+            self.subm_id_combobox.addItems([str(id) for id in range(1, MAX_NUM_SUBMISSION + 1)\
                                          if id not in subm_ids])
             self.subm_id_combobox_onchange(self.subm_id_combobox.currentIndex())
             
@@ -907,7 +911,6 @@ class ScheduleDialog:
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.subm_deadline_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
         self.subm_deadline_dtedit.setObjectName("subm_deadline_dtedit")
-        self.subm_deadline_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.gridLayout.addWidget(self.subm_deadline_dtedit, 2, 1, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setObjectName("label_4")
@@ -925,8 +928,10 @@ class ScheduleDialog:
         self.cancel_btn.setObjectName("cancel_btn")
         self.gridLayout.addWidget(self.cancel_btn, 4, 4, 1, 1)
         self.subm_start_dtedit = QtWidgets.QDateTimeEdit(Dialog, calendarPopup=True)
+        if self.is_new_schedule:
+            self.subm_start_dtedit.setMinimumDateTime(QtCore.QDateTime.currentDateTime())
         self.subm_start_dtedit.setObjectName("subm_start_dtedit")
-        self.subm_start_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
+        
         self.gridLayout.addWidget(self.subm_start_dtedit, 1, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
         # # ==================================
@@ -962,14 +967,24 @@ class ScheduleDialog:
             subm_id_col = 0
             return int(self.parent.deadline_tb.item(selected_row, subm_id_col).text())
 
+    def init_new_schedule(self):
+        self.eval_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.review_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.subm_start_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.subm_deadline_dtedit.setDateTime(QtCore.QDateTime.currentDateTime())
+
     def update_existing_schedule(self):
-        _, _, is_distributed, subm_deadline,\
+        _, subm_start, subm_deadline, _,\
                 review_deadline, eval_deadline = self.controller.db.get_schedule(self.subm_id)
+        self.review_dtedit.setDateTime(datetime.datetime.fromtimestamp(review_deadline))
+        self.subm_deadline_dtedit.setDateTime(datetime.datetime.fromtimestamp(subm_deadline))
+        self.eval_dtedit.setDateTime(datetime.datetime.fromtimestamp(eval_deadline))
+        self.subm_start_dtedit.setDateTime(datetime.datetime.fromtimestamp(subm_start))
         count = 0
-        if is_distributed:
+        current = time.time()
+        if current > subm_start:
             self.subm_start_dtedit.setReadOnly(True)
             count += 1
-        current = time.time()
         if current > subm_deadline:
             self.subm_deadline_dtedit.setReadOnly(True)
             count += 1
@@ -989,7 +1004,10 @@ class ScheduleDialog:
     def hide(self):
         self.widget.hide()
 
-    def confirm_btn_onclick(self):
+    def get_date_edit_time(self):
+        """
+            Return time in unix stamp
+        """
         subm_start = int(datetime.datetime.strptime(self.subm_start_dtedit.text(), "%d/%m/%y %I:%M %p")
                         .timestamp())
         subm_deadline = int(datetime.datetime.strptime(self.subm_deadline_dtedit.text(), "%d/%m/%y %I:%M %p")
@@ -998,24 +1016,44 @@ class ScheduleDialog:
                         .timestamp())
         eval_deadline = int(datetime.datetime.strptime(self.eval_dtedit.text(), "%d/%m/%y %I:%M %p")
                         .timestamp())
-        if self.is_new_schedule:
-            self.controller.db.store_schedule(self.subm_id, subm_start, subm_deadline, \
-                                        review_deadline, eval_deadline)
+        return subm_start, subm_deadline, review_deadline, eval_deadline
+
+    def confirm_btn_onclick(self):
+        subm_start, subm_deadline, review_deadline, eval_deadline = self.get_date_edit_time()
+        is_right_timeline = subm_start <= subm_deadline and subm_deadline <= review_deadline and \
+            review_deadline <= eval_deadline
+        if is_right_timeline:# timeline consistent
+            if self.is_new_schedule:
+                self.controller.db.store_schedule(self.subm_id, subm_start, subm_deadline, \
+                                            review_deadline, eval_deadline)
+            else: # old schedule
+                if not self.controller.db.is_subm_distributed(self.subm_id) and time.time() >= subm_deadline:
+                    buttonReply = QtWidgets.QMessageBox.question(self.widget, 'Warning', 'This will cause submission to be \
+                                                distributed soon, are you sure you want to continue?'\
+                                        , QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+                    if buttonReply == QtWidgets.QMessageBox.No:
+                        return # Nothing changed, back to schedule dialog
+                self.controller.db.update_schedule(self.subm_id, subm_start, subm_deadline, \
+                                                    review_deadline, eval_deadline)
+            self.parent.update_deadline_tb()
+            items = self.parent.deadline_tb.findItems(str(self.subm_id), QtCore.Qt.MatchExactly)
+            self.parent.deadline_tb.scrollToItem(items[0], QtWidgets.QAbstractItemView.PositionAtCenter)
+            self.parent.deadline_tb.clearSelection()
+            items[0].setSelected(True)
+            self.widget.done(self.widget.Accepted)
         else:
-            self.controller.db.update_schedule(self.subm_id, subm_start, subm_deadline, \
-                                        review_deadline, eval_deadline)
-        self.parent.update_deadline_tb()
-        items = self.parent.deadline_tb.findItems(str(self.subm_id), QtCore.Qt.MatchExactly)
-        self.parent.deadline_tb.scrollToItem(items[0], QtWidgets.QAbstractItemView.PositionAtCenter)
-        self.parent.deadline_tb.clearSelection()
-        items[0].setSelected(True)
-        self.widget.done(self.widget.Accepted)
+            buttonReply = QtWidgets.QMessageBox.warning(self.widget, 'Timeline Not Consistent', 'Please make sure timeline\
+                                                 deadlines are in time sequence')
 
     def cancel_btn_onclick(self):
         self.widget.done(self.widget.Accepted)
 
     def subm_id_combobox_onchange(self, index):
-        self.subm_id = int(self.subm_id_combobox.currentText())
+        subm_id = self.subm_id_combobox.currentText()
+        if subm_id:
+            self.subm_id = int(subm_id)
+        else:
+            self.subm_id = 0
 
 class DisconnectDialog:
     def __init__(self, controller, parent) -> None:

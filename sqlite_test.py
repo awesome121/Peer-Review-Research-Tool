@@ -1,3 +1,4 @@
+from email.message import EmailMessage
 from socket import timeout
 from random import randint
 import sqlite3, requests
@@ -124,34 +125,56 @@ import database, os, time
 
 #[('msgid', 'j2@gmail.com', 2, '2022:2:19', 'review_convo_id', 'j4@gmail.com', '2022:2:20', '2022:2:21', 'eval_convo_id', 7, 'good', '2022:2:22', '2022:2:23')]
 
-
-def init_one_new_chain():
-#     os.system("rm database.db")
+def test():
+    os.system("rm database.db")
     db = database.Database()
-#     db.create_database()
+    db.create_database()
 
-    print('-'*40)
-    print('Original_TB')
-    db.view_table_information('chain')
-    print('-'*40)
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    emails = [('changxing.gong@gmail.com',), ('uc.productdesign.dropbox@gmail.com',), ('jimmy75792@gmail.com',)]
+    cur.executemany("INSERT INTO email_list (address) values (?)", emails)
+    cur.execute("INSERT INTO schedule (subm_id, start_date, 'end_date (subm)', is_distributed, \
+                'end_date (review)', 'end_date (eval)') values (15, ?, ?, 0, ?, ?)", (time.time(), time.time()+120, time.time()+240, time.time()+360))
+    con.commit()
+    con.close()
+test()
 
-    author = 'j2@gmail.com' # email_address (text)
-    subm_id = 1 # integer
-    reviewer = 'j5@gmail.com' # email_address (text)
+# def init_one_new_chain():
+    # os.system("rm database.db")
+    # db = database.Database()
+    # db.create_database()
+
+    # print('-'*40)
+    # print('Original_TB')
+    # db.view_table_information('submission')
+    # db.view_table_information('chain')
+    # db.view_table_information('schedule')
+
+    # print('-'*40)
+    # print(db.is_subm_started(7))
+    # print(db.is_subm_end(7))
+    # print(db.is_review_end(7))
+    # print(db.is_eval_end(7))
+
+
+    # author = 'j2@gmail.com' # email_address (text)
+    # subm_id = 1 # integer
+    # reviewer = 'j5@gmail.com' # email_address (text)
     
 
-    msg_id = randint(1, 10000000) # text
-    convo_id_review = f'j2->j4'
-    convo_id_eval = f'j5->j2' # text
+    # msg_id = randint(1, 10000000) # text
+    # convo_id_review = f'j2->j4'
+    # convo_id_eval = f'j5->j2' # text
 
-    subm_received = '2021:10:25 22:10' # text
-    review_req_send = '2021:10:25 23:10' # text
-    review_received = '2021:10:26 02:10' # text
-    eval_req_sent = '2021:10:26 12:10' # text
-    eval_received = '2021:10:26 22:10' # text
+    # subm_received = '2021:10:25 22:10' # text
+    # review_req_send = '2021:10:25 23:10' # text
+    # review_received = '2021:10:26 02:10' # text
+    # eval_req_sent = '2021:10:26 12:10' # text
+    # eval_received = '2021:10:26 22:10' # text
 
-    rating = 9 # integer
-    comment = 'Good' # text
+    # rating = 9 # integer
+    # comment = 'Good' # text
 
 
     # Flow
@@ -163,13 +186,13 @@ def init_one_new_chain():
 
 
 
-    print('-'*40)
-    print('Updated_TB')
-    db.view_table_information('chain')
-    print('-'*40)
+    # print('-'*40)
+    # print('Updated_TB')
+    # db.view_table_information('chain')
+    # print('-'*40)
 
 
-init_one_new_chain()
+# init_one_new_chain()
 # db = database.Database()
 # db.view_table_information('chain')
 

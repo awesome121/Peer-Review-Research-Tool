@@ -1,25 +1,25 @@
 """
-API permission and calls can be found in configuration.json.
-Message templates prepended into email can be found in message_temp module.
-Database object is used to interact with database.db file.
-MailHandler parses email subject with the aid of MailParser.
+    API permission and calls can be found in configuration.json.
+    Message templates prepended into email can be found in message_temp module.
+    Database object is used to interact with database.db file.
+    MailHandler parses email subject with the aid of MailParser.
 
-About authentication process, please refer Microsoft Authentication 
-Lbrary (MSAL) https://msal-python.readthedocs.io/en/latest/ 
-for more details.
+    About authentication process, please refer Microsoft Authentication 
+    Lbrary (MSAL) https://msal-python.readthedocs.io/en/latest/ 
+    for more details.
 
-About HTTP requests, please refer https://docs.python-requests.org/en/latest/
-for more details
+    About HTTP requests, please refer https://docs.python-requests.org/en/latest/
+    for more details
 
-This module is imported by main.py, App object normally uses only one 
-MailHandler object, when distributing, another MailHandler object created.
+    This module is imported by main.py, App object normally uses only one 
+    MailHandler object, when distributing, another MailHandler object created.
 """
 
 import requests, json, message_temp, time
 from database import Database
 from mail_parser import MailParser
 
-SLEEP_INTERVAL = 1
+SLEEP_INTERVAL = 0.2 # checking inbox, in minutes
 
 class MailHandler:
     """
@@ -33,8 +33,8 @@ class MailHandler:
         self.auth_header_ = auth_header
         with open("configuration.json") as conf:
             self.config_ = json.load(conf)
-        self.db_ = Database()
-        self.parser_ = MailParser()
+        self.db = Database()
+        self.parser = MailParser()
     
     def listen(self):
         """
@@ -44,16 +44,16 @@ class MailHandler:
             Sleeping for 5 minites if the inbox is empty 
         """
         while self.app.get_conn_status():
-            try:
-                unread_mails = self.check_inbox()
-                if len(unread_mails) != 0:
-                    self.process_unread(unread_mails)
-                else:
-                    time.sleep(60 * SLEEP_INTERVAL) # sleep for SLEEP_INTERVAL minutes
-            except:
-                self.app.disconnect()
-                print('connection lost')
-                break
+            # try:
+            unread_mails = self.check_inbox()
+            if len(unread_mails) != 0:
+                self.process_unread(unread_mails)
+            else:
+                time.sleep(60 * SLEEP_INTERVAL) # sleep for SLEEP_INTERVAL minutes
+            # except:
+            #     self.app.disconnect()
+            #     print('connection lost')
+            #     break
 
     def login_test(self):
         """===Only used for testing==="""
@@ -104,26 +104,16 @@ class MailHandler:
                 mails: a list of mails in dict format
         """
         for mail in mails:
-            msg_id, convo_id, subject, from_, date = self.parser_.parse_mail(mail)
-            if not self.db_.is_subscriber(from_):
+            msg_id, convo_id, subject, from_, date = self.parser.parse_mail(mail)
+            if not self.db.is_subscriber(from_):
                 continue # ignore non-subscriber
             self.mark_as_read(msg_id)
-            if self.parser_.is_subm(subject):
-                if self.db_.store_subm(msg_id, from_, \
-                                          self.parser_.get_subm_id(subject), date):
-                    self.reply_subm(msg_id, mail, True)
-                else:
-                    self.reply_subm(msg_id, mail, False)
-                
-            elif self.parser_.is_review(subject):
-                if self.db_.store_review(convo_id, date):
-                    author = self.db_.get_author_by_convo_id(convo_id)
-                    new_conv_id, date_sent = self.send_req(self.parser_.get_eval_req(), \
-                                                            mail, author)
-                    self.db_.store_eval_req(convo_id, new_conv_id, date_sent)
-            elif self.parser_.is_eval(subject):
-                rating, comment = self.parser_.get_eval(mail)
-                self.db_.store_eval(convo_id, rating, comment, date)
+            if self.parser.is_subm(subject):
+                self.process_subm(msg_id, from_, subject, date, mail)
+            elif self.parser.is_review(subject):
+                self.process_review(subject, convo_id, date, mail)
+            elif self.parser.is_eval(subject):
+                self.process_eval(subject, convo_id, date, mail)
             else: # subscriber but invalid subject
                 self.reply_usage_prompt(msg_id, mail)
                 print(subject)
@@ -141,6 +131,42 @@ class MailHandler:
             print(response)
             print('Error: mark_as_read')
             exit(1)
+
+    def process_subm(self, msg_id, from_, subject, date, mail):
+        subm_id = self.parser.get_subm_id(subject)
+        if not self.db.exist_schedule(subm_id):
+            print("received non-existing submission")
+            # self.reply_subm_not_exists(msg_id, mail)
+            # reply submission not exists
+        elif not self.db.is_subm_started(subm_id):
+            print("received non-starting submission")
+            # reply submission not started
+            # self.reply_subm_not_started(msg_id, mail)
+        elif self.db.is_subm_end(subm_id):
+            print("received submission after deadline")
+        elif self.db.store_subm(msg_id, from_, \
+                                    self.parser.get_subm_id(subject), date):
+            self.reply_subm(msg_id, mail, True)
+        else:
+            self.reply_subm(msg_id, mail, False) # submission exsits already
+
+    def process_review(self, subject, convo_id, date, mail):
+        subm_id = self.parser.get_subm_id(subject)
+        if self.db.is_review_end(subm_id):
+            print("received review after deadline")
+        elif self.db.store_review(convo_id, date):
+            author = self.db.get_author_by_convo_id(convo_id)
+            new_conv_id, date_sent = self.send_req(self.parser.get_eval_req(subm_id), \
+                                                    mail, author)
+            self.db.store_eval_req(convo_id, new_conv_id, date_sent)
+
+    def process_eval(self, subject, convo_id, date, mail):
+        subm_id = self.parser.get_subm_id(subject)
+        if self.db.is_eval_end(subm_id):
+            print("received review after deadline")
+        else:
+            rating, comment = self.parser.get_eval(mail)
+            self.db.store_eval(convo_id, rating, comment, date)
 
     def reply_subm(self, msg_id, mail, is_subm_success):
         """
@@ -175,28 +201,31 @@ class MailHandler:
             Param:
                 subm_id: id of the submission to be distributed
         """
-        subms = self.db_.get_subms_by_id(subm_id) # draw submssions from submission table matched subm_id
-        for msg_id, author, _, subm_received in subms:
-            reviewers = self.db_.draw_reviewers(author)
+        subms = self.db.get_subms_by_id(subm_id) # draw submissions from submission table matched subm_id
+        print(f"---distributing submissions {subms}---")
+        for msg_id, author, _, subm_received, _ in subms:
+            reviewers = self.db.draw_reviewers(author)
+            print(f"draw reviewer {reviewers} for author {author}")
             for reviewer in reviewers:
                 mail = self.get_mail_by_msg_id(msg_id)
-                review_convo_id, date_sent = self.send_req(self.parser_.get_review_req(), \
+                review_convo_id, date_sent = self.send_req(self.parser.get_review_req(subm_id), \
                                                         mail, reviewer)
-                self.db_.store_review_req(msg_id, author, subm_id, subm_received, review_convo_id,\
+                self.db.store_review_req(msg_id, author, subm_id, subm_received, review_convo_id,\
                                          reviewer, date_sent)
                 if not self.app.get_conn_status():
+                    print("connection lost, distributor terminates")
                     return
 
     def get_mail_by_msg_id(self, msg_id):
         """
             Param:
-                convo_id: a string of conversation id
+                msg_id: a string of message id
             Return:
                 an email object in dict form
         """
         response = requests.get(self.config_['msg'].format(msg_id), \
                                 headers=self.auth_header_).json()
-        return response['value'][0] # only 1 mail in the whole list
+        return response
 
     def send_req(self, subject, mail, dest):
         """
@@ -209,7 +238,8 @@ class MailHandler:
                 date sent: the date on sending this request
         """
         content = mail['body']['content']
-        prompt = message_temp.REVIEW_REQUEST_PROMPT if subject.lower() == 'review-request' \
+        print("dest:", dest, "email: ", mail)
+        prompt = message_temp.REVIEW_REQUEST_PROMPT if self.parser.is_review(subject) \
                     else message_temp.EVAL_REQUEST_PROMPT
         data = {
             "message": {
@@ -227,7 +257,8 @@ class MailHandler:
         }
         if mail['hasAttachments']:
             data['attachments'] = self.get_attachments(mail['id'])
-        response = requests.post(self.config_['create_draft'], json.dumps(data), \
+            print("dest:", dest, "attachment", data['attachments'])
+        response = requests.post(self.config_['send_mail'], json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
         if 'error' in response:
             print(response)

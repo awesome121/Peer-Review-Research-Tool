@@ -3,14 +3,12 @@
     e.g.
     Author -> Agent               Subject: "submission-1"
 
-    Agent -> Reviewer             Subject: "Review-Request"
-    Reviewer -> Agent             Subject: "Re: Review-Request"
+    Agent -> Reviewer             Subject: "Review-Request-1"
+    Reviewer -> Agent             Subject: "Re: Review-Request-1"
 
-    Agent -> Original author      Subject: "evaluation-Request"
-    Original author -> Agent      Subject: "Re: evaluation-Request"
+    Agent -> Original author      Subject: "evaluation-Request-1"
+    Original author -> Agent      Subject: "Re: evaluation-Request-1"
 """
-
-from html.parser import HTMLParser
 
 class MailParser:
     """
@@ -19,37 +17,38 @@ class MailParser:
         sabove.
     """
     def __init__(self):
-        pass
-        self.max_subm = 6
+        self.MAX_NUM_SUBMISSION = 20
 
     def is_subm(self, subject):
         subject = subject.strip().lower().split('-')
         return len(subject) == 2 and subject[0] == 'submission' and \
-            subject[1].isdigit() and (1 <= int(subject[1]) <= self.max_subm)
+            subject[1].isdigit() and (1 <= int(subject[1]) <= self.MAX_NUM_SUBMISSION)
 
     def is_review(self, subject):
         subject = subject.strip().lower().split('-')
-        return len(subject) == 2 and subject[0] == 're: review' \
-                and subject[1] == 'request'
+        return len(subject) == 3 and subject[0] == 're: review' \
+                and subject[1] == 'request' and subject[2].isdigit()\
+                and (1 <= int(subject[2]) <= self.MAX_NUM_SUBMISSION)
 
     def is_eval(self, subject):
         subject = subject.strip().lower().split('-')
-        return len(subject) == 2 and subject[0] == 're: evaluation' \
-                and subject[1] == 'request'
+        return len(subject) == 3 and subject[0] == 're: evaluation' \
+                and subject[1] == 'request' and subject[2].isdigit()\
+                and (1 <= int(subject[2]) <= self.MAX_NUM_SUBMISSION)
 
     def get_subm_id(self, subject):
         """Give a string of subject, return an integer"""
         subject = subject.strip().lower().split('-')
-        return int(subject[1])
+        return int(subject[-1])
 
     def get_subm_success(self):
         return f"Submission-Success"
 
-    def get_review_req(self):
-        return f"Review-Request"
+    def get_review_req(self, id):
+        return f"Review-Request-{id}"
 
-    def get_eval_req(self):
-        return f"Evaluation-Request"
+    def get_eval_req(self, id):
+        return f"Evaluation-Request-{id}"
 
     def parse_mail(self, mail):
         msg_id = mail['id']
