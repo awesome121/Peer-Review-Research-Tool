@@ -238,26 +238,25 @@ class MailHandler:
                 date sent: the date on sending this request
         """
         content = mail['body']['content']
-        print("dest:", dest, "email: ", mail)
         prompt = message_temp.REVIEW_REQUEST_PROMPT if self.parser.is_review(subject) \
                     else message_temp.EVAL_REQUEST_PROMPT
         data = {
             "message": {
                 "subject": subject,
+                "hasAttachments" : mail['hasAttachments'],
                 "body": {
-                "contentType": "HTML",
-                "content": f"{prompt + content}"
+                "contentType": "html",
+                "content": f"{prompt+content}"
                 },
                 "toRecipients": [{
                     "emailAddress": {
                     "address": f"{dest}"
                     }
                 }],
-            }
+            },
         }
         if mail['hasAttachments']:
-            data['attachments'] = self.get_attachments(mail['id'])
-            print("dest:", dest, "attachment", data['attachments'])
+            data['message']['attachments'] = self.get_attachments(mail['id'])
         response = requests.post(self.config_['send_mail'], json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
         if 'error' in response:
