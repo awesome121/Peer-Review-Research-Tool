@@ -1,12 +1,14 @@
 # Created by: PyQt5 UI code generator 5.15.6
-from PyQt5 import QtCore, QtGui, QtWidgets, Qt
-import database, os, time, datetime
-
-import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+import database, time, datetime, sys
 
 MAX_NUM_SUBMISSION = 20
 
 class Controller:
+    """
+        UI Controller, is used to connect App with Qt UI components
+        such as window widgets
+    """
     def __init__(self, app, has_account) -> None:
         self.app = app
         self.db = database.Database()
@@ -260,7 +262,6 @@ class Dashboard:
         self.setupUi(self.widget)
         self.update_conn_status()
         self.widget.show()
-
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -572,15 +573,6 @@ class Dashboard:
             else:
                 self.remove_student_btn.setText(f"Remove {len(idxs)} selected students")
 
-    # def on_changed_combobox_tab_1(self, selected_value):
-    #     print("Combbox changed", selected_value)
-    #     if selected_value == "Submission":
-    #         self.label_2.setText(f"Students submissions submitted for current deadline: {self.total_submission}")
-    #     elif selected_value == "Review":
-    #         self.label_2.setText(f"Students reviews submitted for current deadline: {self.total_review}")
-    #     elif selected_value == "Rating":
-    #         self.label_2.setText(f"Students ratings submitted for current deadline: {self.total_rating}")
-
     def conn_btn_onclick(self):
         print("click button, popping dialog")
         if not self.controller.has_valid_token():
@@ -590,7 +582,6 @@ class Dashboard:
             self.update_conn_status()
         else:
             self.child = DisconnectDialog(self.controller, self)
-
 
     def update_conn_status(self):
         print('update_conn_status', )
@@ -705,7 +696,6 @@ class StudentDetailDialog:
         self.bottom_left_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.bottom_left_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
-
         self.gridLayout.addWidget(self.bottom_left_tb, 6, 0, 1, 1)
         self.top_right_tb = QtWidgets.QTableWidget(0, 2, Dialog)
         self.top_right_tb.setObjectName("top_right_tb")
@@ -715,7 +705,6 @@ class StudentDetailDialog:
                                             QtWidgets.QHeaderView.Stretch)
         self.top_right_tb.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.top_right_tb.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-
 
         self.gridLayout.addWidget(self.top_right_tb, 3, 2, 1, 1)
         self.label_4 = QtWidgets.QLabel(Dialog)
@@ -781,7 +770,6 @@ class StudentDetailDialog:
         self.label_3.setText(_translate("Dialog", "also reviewed by"))
         self.label.setText(_translate("Dialog", "has submitted:"))
         self.label_2.setText(_translate("Dialog", "has reviewed:"))
-
 
     # Events handeler
     def top_left_tb_itemSelected(self):
@@ -897,7 +885,6 @@ class ScheduleDialog:
                                          if id not in subm_ids])
             self.subm_id_combobox_onchange(self.subm_id_combobox.currentIndex())
             
-
         self.line = QtWidgets.QFrame(Dialog)
         self.line.setFrameShape(QtWidgets.QFrame.VLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -934,12 +921,6 @@ class ScheduleDialog:
         
         self.gridLayout.addWidget(self.subm_start_dtedit, 1, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-        # # ==================================
-        # self.dateeidt = QtWidgets.QDateTimeEdit(self.deadline_tb, calendarPopup=True)
-        # self.gridLayout_5.addWidget(self.dateeidt, 0, 0, 1, 1)
-        # # self.widget.menuBar().setCornerWidget(self.dateeidt, QtCore.Qt.Corner.TopLeftCorner)
-        # self.dateeidt.setDateTime(QtCore.QDateTime.currentDateTime())
-        # # ==================================
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         #listener
@@ -947,7 +928,6 @@ class ScheduleDialog:
         self.cancel_btn.clicked.connect(self.cancel_btn_onclick)
         if self.is_new_schedule:
             self.subm_id_combobox.currentIndexChanged.connect(self.subm_id_combobox_onchange)
-
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -996,7 +976,6 @@ class ScheduleDialog:
             count += 1
         if count == 4:
             self.confirm_btn.setDisabled(True)
-
 
     def show(self):
         self.widget.show()

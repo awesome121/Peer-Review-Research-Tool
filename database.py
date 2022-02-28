@@ -1,5 +1,5 @@
 """
-    Generated:
+    Database class only generates a single database file:
         database.db
     
     Tables in database.db:
@@ -8,8 +8,9 @@
         schedule
         chain
         connection
+        
+    Please see table initialization for details
 """
-
 
 import csv, sqlite3, time
 
@@ -136,14 +137,13 @@ class Database:
 #--------------------------------------------------
     def update_email_list(self, input_csv_file):
         """
-        Provided:
-            A csv file which contains a list of email.
-        Output:
-            Updated email list table
+            This function takes the email addresses in a csv file,
+            inserts them into database, if it's new, it will be added.
+            if it already exists, nothing changes. 
+            Param:
+                input_csv_file: A csv file which contains a list of email.
         """
-        # Establish a connection
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        # Get the cursor
         cur = con.cursor()
         with open(input_csv_file, encoding='utf-8-sig') as file:
             lines = file.read().splitlines()
@@ -154,6 +154,12 @@ class Database:
         con.close()
 
     def update_connection(self, start_date, end_date):
+        """
+            This function is used to update an existing connection
+            Param:
+                start_date: start date of this connection
+                end_date: most recent date of this connection
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f"UPDATE {self.TB_CONNECTION} SET end_date = {end_date} \
@@ -163,6 +169,15 @@ class Database:
 
     def update_schedule(self, subm_id, subm_start, subm_deadline, \
                                         review_deadline, eval_deadline):
+        """
+            This function is used to update an existing schedule
+            Param:
+                subm_id: an integer of submission id
+                subm_start: an integer (unixstamp), submission start date
+                subm_deadline: an integer (unixstamp), submission deadline
+                review_deadline: an integer (unixstamp), review deadline
+                eval_deadline: an integer (unixstamp), evaluation deadline
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f"UPDATE {self.TB_SCHEDULE} SET start_date = {subm_start} \
@@ -172,8 +187,12 @@ class Database:
         con.commit()
         con.close()
             
-
     def store_connection(self, start_date):
+        """
+            This function is used to store a connection
+            Param:
+                start_date: start date of this new connection
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f"INSERT INTO {self.TB_CONNECTION} (start_date, end_date) \
@@ -181,15 +200,22 @@ class Database:
         con.commit()
         con.close()
 
-    def store_schedule(self, subm_id, start_date, end_date, end_date_review, end_date_eval):
-        # Establish a connection
+    def store_schedule(self, subm_id, subm_start, subm_deadline, review_deadline, eval_deadline):
+        """
+            This function is used to store a new schedule
+            Param:
+                subm_id: an integer of submission id
+                subm_start: an integer (unixstamp), submission start date
+                subm_deadline: an integer (unixstamp), submission deadline
+                review_deadline: an integer (unixstamp), review deadline
+                eval_deadline: an integer (unixstamp), evaluation deadline
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
-        # Get the cursor
         cur = con.cursor()
         cur.execute(f"INSERT INTO '{self.TB_SCHEDULE}' (subm_id, start_date, " +\
                         " 'end_date (subm)', is_distributed, 'end_date (review)'," +\
                         " 'end_date (eval)') values (?, ?, ?, 0, ?, ?)", (subm_id,\
-                             start_date, end_date, end_date_review, end_date_eval))
+                             subm_start, subm_deadline, review_deadline, eval_deadline))
         con.commit()
         con.close()
 
@@ -315,7 +341,6 @@ class Database:
         return True
 
     #==================================================
-    
     def get_author_by_prefix(self, prefix):
         """
             Param:
@@ -469,6 +494,9 @@ class Database:
         return count
     
     def get_subscriber_total(self):
+        """
+            Return an integer, the number of subscribers in email list.
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT COUNT(*) from '{self.TB_EMAIL_LIST}'").fetchone()
@@ -479,6 +507,9 @@ class Database:
         return count
     
     def get_all_email_addr(self):
+        """
+            Return a list of all email addresses in database
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT * FROM {self.TB_EMAIL_LIST}").fetchall()
@@ -514,8 +545,6 @@ class Database:
         if result is None:
             return None, None
         return result
-
-
  #=================================================
 
     def is_subscriber(self, addr):
@@ -589,6 +618,11 @@ class Database:
             return True
 
     def remove_email_addr(self, addresses):
+        """
+            Param: 
+                addresses: a list of email addresses
+            This function removes a list of email addresses
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         for addr in addresses:
@@ -597,6 +631,11 @@ class Database:
         con.close()
 
     def remove_schedule(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            This function removes a schedule with subm_id
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         cur.execute(f"DELETE FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}")
@@ -604,6 +643,12 @@ class Database:
         con.close()
 
     def exist_schedule(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if a schedule with subm_id exists, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT COUNT(*) FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}")\
@@ -614,6 +659,12 @@ class Database:
         
 
     def is_subm_distributed(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if subm_id was distributed, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         result = cur.execute(f"SELECT is_distributed FROM {self.TB_SCHEDULE} \
@@ -622,6 +673,12 @@ class Database:
         return result == 1
 
     def is_subm_started(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if subm_id has started, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         subm_start_date = cur.execute(f'SELECT start_date FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
@@ -630,6 +687,12 @@ class Database:
         return time.time() > subm_start_date
     
     def is_subm_end(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if subm_id has ended, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         subm_end_date = cur.execute(f'SELECT "end_date (subm)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
@@ -638,6 +701,12 @@ class Database:
         return time.time() > subm_end_date
 
     def is_review_end(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if review of subm_id has ended, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         review_end_date = cur.execute(f'SELECT "end_date (review)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
@@ -646,6 +715,12 @@ class Database:
         return time.time() > review_end_date
 
     def is_eval_end(self, subm_id):
+        """
+            Param: 
+                subm_id: submission id
+            Return:
+                True if evaluation of subm_id has ended, False otherwise 
+        """
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         cur = con.cursor()
         eval_end_date = cur.execute(f'SELECT "end_date (eval)" FROM {self.TB_SCHEDULE} WHERE subm_id = {subm_id}').fetchone()[0]
@@ -664,7 +739,6 @@ class Database:
         result = cur.fetchall()
         print(result)
         con.close()
-
 
 #--------------------------------------------------
     def export_table(self, table, filename):

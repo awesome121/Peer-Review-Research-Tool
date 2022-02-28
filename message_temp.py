@@ -3,13 +3,14 @@ These are the prompt message prepend into message
 Format can be HTML with CSS.
 """
 
+
+
 SUBMISSION_SUCCESS = \
 """<p>Thanks for your submission!<br>We&apos;ve received your submission successfully.</p>
-<p>Your submission will be anonymously distributed to 3 randomly selected reviewers.&nbsp;</p>
+<p>Your submission will be anonymously distributed to at most 3 randomly selected reviewers.&nbsp;</p>
 <p>Please check your mailbox later for new updates.</p>
 <p><br></p>
 <p>Kind Regards,<br>Dropbox of Product Design</p>"""
-
 
 SUBMISSION_FAILURE = \
 """<p>Hi<br>We&apos;ve received your message.</p>
@@ -54,11 +55,30 @@ EVAL_REQUEST_PROMPT = \
     </div>
 </div><br><br><br>"""
 
-
-USAGE_PROMPT = \
+INVALID_SUBJECT = \
 """<p>Thanks for your email!<br></p>
 <p>It seems you have an invalid subject<br><br></p>
 <p>To submit your work, please send us an email with subject "submission-x" where "x" is the submission id<br></p>
-<p>To submit your review, please click "reply" to our review request<br><</p>
-<p>To submit your evaluation, please click "reply" to our evaluation request<br><br></p>
+<p>To submit your review, please click "reply" to review request<br><</p>
+<p>To submit your evaluation, please click "reply" to evaluation request<br><br></p>
 <p>Kind Regards,<br>Dropbox of Product Design</p>"""
+
+NON_EXISTING_SUBM = \
+"""
+"""
+
+NON_STARTING_SUBM = \
+"""
+"""
+
+USALATE_SUBMGE_PROMPT = \
+"""
+"""
+
+LATE_REVIEW = \
+"""
+"""
+
+LATE_EVAL = \
+"""
+"""

@@ -9,7 +9,7 @@
     
     "get_convo" : "https://graph.microsoft.com/v1.0/me/messages?$filter= conversationId eq '{}'",
     "msg" : "https://graph.microsoft.com/v1.0/me/messages/{}",
-    "reply_subm" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply",
+    "reply_msg" : "https://graph.microsoft.com/v1.0/me/messages/{}/reply",
     "send_mail" : "https://graph.microsoft.com/v1.0/me/sendMail",
     "get_attachments" : "https://graph.microsoft.com/v1.0/me/messages/{}/attachments"
 }

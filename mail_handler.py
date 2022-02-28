@@ -21,6 +21,16 @@ from mail_parser import MailParser
 
 SLEEP_INTERVAL = 0.2 # checking inbox, in minutes
 
+#=====messagee template constants=======
+NON_EXISTING_SUBM = 0
+NON_STARTING_SUBM = 1
+LATE_SUBM = 2
+LATE_REVIEW = 3
+LATE_EVAL = 4
+INVALID_SUBJECT = 5
+#=======================================
+
+
 class MailHandler:
     """
         Mail Handler class, this class is used to automate an outlook email account,
@@ -55,10 +65,6 @@ class MailHandler:
             #     print('connection lost')
             #     break
 
-    def login_test(self):
-        """===Only used for testing==="""
-        self.access_token_ = "eyJ0eXAiOiJKV1QiLCJub25jZSI6IlhnSW9VQ1BwN0dGcDVnU2huUE1NOUZraWlGUFFKY3dwX2RzZVBRLTl1VlkiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCIsImtpZCI6Ik1yNS1BVWliZkJpaTdOZDFqQmViYXhib1hXMCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEvIiwiaWF0IjoxNjQxNTA3MDc5LCJuYmYiOjE2NDE1MDcwNzksImV4cCI6MTY0MTUxMTE1NCwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhUQUFBQTFvZTV0OUUramVVbFNMK25VTHBHNlV0WW5lc05BN2N1NFg5dktxQTE5dzA9IiwiYW1yIjpbInB3ZCJdLCJhcHBfZGlzcGxheW5hbWUiOiJib3QiLCJhcHBpZCI6ImRkODliYjk0LTA3ZjQtNGU1ZC1iNjQxLTEyNWZjOTZiZmRlZSIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiR29uZyIsImdpdmVuX25hbWUiOiJDaGFuZ3hpbmciLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNTEuMjEwLjE2OS43MyIsIm5hbWUiOiJDaGFuZ3hpbmcgR29uZyIsIm9pZCI6IjQ3MmRmMjBlLTk2ZjUtNDdhYS04YjM5LWI5Y2VlYzBkYTgwOSIsIm9ucHJlbV9zaWQiOiJTLTEtNS0yMS05NjYyMDQxNDMtNzQ2OTMyNjkwLTExNTM5NDYyLTI4MTcyMyIsInBsYXRmIjoiMTQiLCJwdWlkIjoiMTAwMzAwMDBBRTRDRkY4RSIsInJoIjoiMC5BVUVBSnhkNDNBNXhWVWk4VEdrQ1pxRzFVWlM3aWQzMEIxMU90a0VTWDhscl9lNUJBRGsuIiwic2NwIjoiSU1BUC5BY2Nlc3NBc1VzZXIuQWxsIE1haWwuUmVhZCBNYWlsLlJlYWRCYXNpYyBNYWlsLlJlYWRXcml0ZSBNYWlsLlNlbmQgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBlbWFpbCIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IkJrZm91OVU4d21nOElvdmRveUpTRjM3Zl83c3ZaZTVtWjZ2LUJ3MzdiNmMiLCJ0ZW5hbnRfcmVnaW9uX3Njb3BlIjoiT0MiLCJ0aWQiOiJkYzc4MTcyNy03MTBlLTQ4NTUtYmM0Yy02OTAyNjZhMWI1NTEiLCJ1bmlxdWVfbmFtZSI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInVwbiI6ImNnbzU0QHVjbGl2ZS5hYy5ueiIsInV0aSI6IjFzLUhkc21BWmtTQXF3OXpOQ1BUQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJ4bXNfc3QiOnsic3ViIjoienZVa1UxT2g5LVFxUXBnUTRhejFWZjgwMFVOazVDS2p6UGg5RTZGX0JwMCJ9LCJ4bXNfdGNkdCI6MTM2NjkxMDA5MH0.DiQTLl71kYA1nstIy_ANK5oT-b1iiiqACZKp1ZHOAMoEFpKAEtw5v_r2y1rvWBh1i1_SxffjjVlecKEpi1mC91IMSPhKRHvOrOugxZolE4o8LDyTSDdKuix7VysR7gMYIL7R6OfeL8H4uEtiG-gE1SXJ9pO5VSrMmEJh7zWiWuZPuLQwFLgtmuDfRUpSuzFmW9Z8E7wocA9ZIryR0iBxMscZOdKNK98ueAiAvBG37wmKUJTXBko0NaJ7PwacmHu3Hxb0UOe9gWxQFwTk52bFcvtrkYp17QyacVXKd-ycsB6Ru9WKIJiZohVp5MYI87q8RImTnPgl48uZT9T5HqWqaQ"
-        self.auth_header_ = {'Authorization': 'Bearer ' + self.access_token_}
 
     def check_inbox(self):
         """
@@ -115,7 +121,7 @@ class MailHandler:
             elif self.parser.is_eval(subject):
                 self.process_eval(subject, convo_id, date, mail)
             else: # subscriber but invalid subject
-                self.reply_usage_prompt(msg_id, mail)
+                self.reply_prompt(INVALID_SUBJECT, mail)
                 print(subject)
 
     def mark_as_read(self, msg_id):
@@ -136,24 +142,27 @@ class MailHandler:
         subm_id = self.parser.get_subm_id(subject)
         if not self.db.exist_schedule(subm_id):
             print("received non-existing submission")
-            # self.reply_subm_not_exists(msg_id, mail)
+            self.reply_prompt(NON_EXISTING_SUBM, mail)
             # reply submission not exists
         elif not self.db.is_subm_started(subm_id):
             print("received non-starting submission")
             # reply submission not started
-            # self.reply_subm_not_started(msg_id, mail)
+            self.reply_prompt(NON_STARTING_SUBM, mail)
         elif self.db.is_subm_end(subm_id):
             print("received submission after deadline")
+            # reply receiving submission after deadline
+            self.reply_prompt(LATE_SUBM, mail)
         elif self.db.store_subm(msg_id, from_, \
                                     self.parser.get_subm_id(subject), date):
             self.reply_subm(msg_id, mail, True)
         else:
-            self.reply_subm(msg_id, mail, False) # submission exsits already
+            self.reply_subm(msg_id, mail, False) # submission exists already
 
     def process_review(self, subject, convo_id, date, mail):
         subm_id = self.parser.get_subm_id(subject)
         if self.db.is_review_end(subm_id):
             print("received review after deadline")
+            self.reply_prompt(LATE_REVIEW, mail)
         elif self.db.store_review(convo_id, date):
             author = self.db.get_author_by_convo_id(convo_id)
             new_conv_id, date_sent = self.send_req(self.parser.get_eval_req(subm_id), \
@@ -163,7 +172,8 @@ class MailHandler:
     def process_eval(self, subject, convo_id, date, mail):
         subm_id = self.parser.get_subm_id(subject)
         if self.db.is_eval_end(subm_id):
-            print("received review after deadline")
+            print("received eval after deadline")
+            self.reply_prompt(LATE_EVAL, mail)
         else:
             rating, comment = self.parser.get_eval(mail)
             self.db.store_eval(convo_id, rating, comment, date)
@@ -185,7 +195,7 @@ class MailHandler:
             "comment": comment
         }
         # data is required to dumped into json format, 'Content-Type' header is required
-        response = requests.post(self.config_['reply_subm'].format(msg_id), json.dumps(data), \
+        response = requests.post(self.config_['reply_msg'].format(msg_id), json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
         # print(response.status_code)
         # print(response.json())
@@ -281,13 +291,25 @@ class MailHandler:
         sent_date = response['value'][0]['sentDateTime']
         return convo_id, sent_date
 
-    def reply_usage_prompt(self, msg_id, mail):
+    def reply_prompt(self, typ, mail):
         """
             Send the prompt message to addr
             Param:
-                addr: An email address
+                typ: an integer, global constant
+                mail: incoming mail
         """
-        comment = message_temp.USAGE_PROMPT
+        if typ == INVALID_SUBJECT:
+            comment = message_temp.INVALID_SUBJECT
+        elif typ == NON_EXISTING_SUBM:
+            comment = message_temp.NON_EXISTING_SUBM
+        elif typ == NON_STARTING_SUBM:
+            comment = message_temp.NON_STARTING_SUBM
+        elif typ == LATE_SUBM:
+            comment = message_temp.USALATE_SUBMGE_PROMPT
+        elif typ == LATE_REVIEW:
+            comment = message_temp.LATE_REVIEW
+        elif typ == LATE_EVAL:
+            comment = message_temp.LATE_EVAL
         data = {
             "message":{  
                 "toRecipients":[ mail['from'] ]
@@ -295,11 +317,11 @@ class MailHandler:
             "comment": comment
         }
         # data is required to dumped into json format, 'Content-Type' header is required
-        response = requests.post(self.config_['reply_subm'].format(msg_id), json.dumps(data), \
+        response = requests.post(self.config_['reply_msg'].format(mail['id']), json.dumps(data), \
             headers=self.auth_header_ | {'Content-Type': 'application/json'})
         if 'error' in response:
             print(response)
-            print('Error: reply_usage_prompt')
+            print(f'Error: reply_prompt, typ {typ}')
             exit(1)
 
     def get_attachments(self, msg_id):

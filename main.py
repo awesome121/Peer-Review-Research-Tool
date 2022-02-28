@@ -3,6 +3,9 @@ import admin_UI, database
 from mail_handler import MailHandler
 
 class App:
+    """ 
+        App class, this class is used to initialize the whole system.
+    """
     def __init__(self):
         self.init_param()
         self.load_config()
@@ -15,29 +18,27 @@ class App:
             self.UI_controller = admin_UI.Controller(self, False)
     
     def init_param(self):
-        self.listener = None
-        self.listener_t = None
-        self.distributor = None
-        self.distributor_t = None
-        self.token = None
-        self.flow = None
-        self.monitor_t = None
+        """Initialize parameters"""
+        self.listener = None # Mail handler object listening incoming messages
+        self.listener_t = None # listener thread object
+        self.distributor = None # Mail handler object for distributing submissions
+        self.distributor_t = None # distributor thread object
+        self.token = None # Authentication token
+        self.flow = None # device code flow
+        self.monitor_t = None # used to monitor deadline, refresh token, etc.
         self.is_auth_success = False
         self.is_connected = False
 
     def load_config(self):
+        """Load configuration file"""
         with open("configuration.json") as conf:
             self.config_ = json.load(conf)
         self.client_id_ = self.config_['client_id'] 
         self.tenant_id_ = self.config_['tenant_id'] 
         self.scopes_ = self.config_['scope']
 
-    def try_connect(self):
-        self.auth_t = threading.Thread(target=self.login)
-        self.auth_t.start()
-
     def connect_succuss(self):
-        """UI event-driven function"""
+        """This function will be called only by successful token acquisition"""
         print('connection success', flush=True)
         self.is_connected = True
         self.listener_t = threading.Thread(target=self.create_listener)
@@ -47,14 +48,18 @@ class App:
         self.monitor_t.start()
 
     def monitor(self):
+        """Monitor submission deadline and refresh authentication token"""
         while self.is_connected:
             self.check_deadline()
             self.refresh_token()
-            self.refresh_last_conn_to()
             time.sleep(1)
         self.init_param()
     
     def check_deadline(self):
+        """
+            Checking submission deadline, if there is one,
+            a distributor will be created.
+        """
         subm_id = self.db.get_undistributed_subm_id()
         if subm_id:
             print(f"Creating distributor for {subm_id}")
@@ -62,16 +67,23 @@ class App:
             self.distributor_t.start()
 
     def create_listener(self):
-        auth_header = {'Authorization': 'Bearer ' + self.token}
+        """
+            An MailHandler object is created for listening
+        """
+        auth_header = {'Authorization': 'Bearer ' + self.token} # API authentication header
         self.listener = MailHandler(self, auth_header)
         self.listener.listen()
 
     def create_distributor(self, subm_id):
+        """
+            An MailHandler object is created for distributing
+            Param:
+                subm_id: submission id that is ready to distribute
+        """
         print(f"Created distributor for {subm_id}", flush=True)
-        auth_header = {'Authorization': 'Bearer ' + self.token}
+        auth_header = {'Authorization': 'Bearer ' + self.token} # API authentication header
         self.distributor = MailHandler(self, auth_header)
         self.distributor.distribute_subm(subm_id)
-
 
     def login(self):
         """
@@ -105,21 +117,18 @@ class App:
                 self.token = result['access_token']
                 self.connect_succuss()
             else: # failure
-                self.clear_auth_flow()
                 sys.exit()
         except AttributeError:
             sys.exit()
         except:
-            self.clear_auth_flow()
             sys.exit()
-    
-    def clear_auth_flow(self):
-        try:
-            del self.flow
-        except AttributeError:
-            return
-    
+        
     def refresh_token(self):
+        """
+            Used to refresh authentication token, a new token lasts ~5000 seconds,
+            token will be refreshed at ~300 seconds, please see MSAL documentation
+            for more information
+        """
         time.sleep(0.5)
         accounts = self.app.get_accounts()
         if accounts:
@@ -135,27 +144,38 @@ class App:
             self.listener.auth_header_ = auth_header
             if self.distributor:
                 self.distributor.auth_header_ = auth_header
-
-    def refresh_last_conn_to(self):
-        pass
-
-    def set_auth_success(self):
-        self.is_auth_success = True
-
-    def reset_auth_success(self):
-        self.is_auth_success = False
-
-    def is_authenticated(self):
-        return self.is_auth_success
-
-    def interrupt_auth_flow(self):
-        self.flow['expires_at'] = 0
+    
+    def clear_auth_flow(self):
+        """Discard authentication flow"""
+        self.flow = None
 
     def disconnect(self):
+        """
+            This function can be used to interrupt MailHandler object.
+            When resetting parameters, token is discarded, which stops MailHandler objects
+        """
         self.init_param()
 
     def get_conn_status(self):
+        """Return True if it's connected, False otherwise"""
         return self.is_connected
+
+    def try_connect(self):
+        """Event-driven function, used by UI controller to make a connection"""
+        self.auth_t = threading.Thread(target=self.login)
+        self.auth_t.start()
+
+    def set_auth_success(self):
+        """Event-driven function, used by UI controller to notify App object"""
+        self.is_auth_success = True
+
+    def interrupt_auth_flow(self):
+        """
+            Event-driven function, used by UI controller to interrupt 
+            MailHandler's authentication flow.
+            Reason for calling this function might be canceling connection.
+        """
+        self.flow['expires_at'] = 0 
     
 if __name__ == '__main__':
     app = App()
