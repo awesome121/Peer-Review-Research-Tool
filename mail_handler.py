@@ -204,6 +204,16 @@ class MailHandler:
             print('Error: reply_subm')
             exit(1)
 
+    def invite_subm(self, subm_id):
+        """
+
+            Param:
+                subm_id: id of the submission to be invited
+        """
+        self.distributor_done = False
+        pass
+        self.distributor_done = True
+        
     def distribute_subm(self, subm_id):
         """
             Distribute submission for a specific submission subm_id
@@ -211,6 +221,7 @@ class MailHandler:
             Param:
                 subm_id: id of the submission to be distributed
         """
+        self.distributor_done = False
         subms = self.db.get_subms_by_id(subm_id) # draw submissions from submission table matched subm_id
         print(f"---distributing submissions {subms}---")
         for msg_id, author, _, subm_received, _ in subms:
@@ -224,7 +235,9 @@ class MailHandler:
                                          reviewer, date_sent)
                 if not self.app.get_conn_status():
                     print("connection lost, distributor terminates")
+                    self.distributor_done = True
                     return
+        self.distributor_done = True
 
     def get_mail_by_msg_id(self, msg_id):
         """
@@ -302,14 +315,18 @@ class MailHandler:
             comment = message_temp.INVALID_SUBJECT
         elif typ == NON_EXISTING_SUBM:
             comment = message_temp.NON_EXISTING_SUBM
-        elif typ == NON_STARTING_SUBM:
-            comment = message_temp.NON_STARTING_SUBM
-        elif typ == LATE_SUBM:
-            comment = message_temp.USALATE_SUBMGE_PROMPT
-        elif typ == LATE_REVIEW:
-            comment = message_temp.LATE_REVIEW
-        elif typ == LATE_EVAL:
-            comment = message_temp.LATE_EVAL
+        else:
+            subm_id, subm_start, subm_end, _, review_start, review_end, eval_start, eval_end\
+                         = self.db.get_schedule(self.parser.get_subm_id(mail['subject']))
+            if typ == NON_STARTING_SUBM:
+                comment = message_temp.NON_STARTING_SUBM.format(subm_id, subm_start, subm_end, \
+                                                review_start, review_end, eval_start, eval_end)
+            elif typ == LATE_SUBM:
+                comment = message_temp.LATE_SUBM_PROMPT.format(subm_id, subm_end)
+            elif typ == LATE_REVIEW:
+                comment = message_temp.LATE_REVIEW.format(subm_id, review_end)
+            elif typ == LATE_EVAL:
+                comment = message_temp.LATE_EVAL.format(subm_id, eval_end)
         data = {
             "message":{  
                 "toRecipients":[ mail['from'] ]

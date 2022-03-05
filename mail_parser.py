@@ -29,6 +29,19 @@ class MailParser:
         return len(subject) == 2 and subject[0] == 'submission' and \
             subject[1].isdigit() and (1 <= int(subject[1]) <= self.MAX_NUM_SUBMISSION)
 
+    def is_subm_reply(self, subject):
+        """
+            Param:
+                subject: a string of email subject
+            Return:
+                True if subject is submission reply
+                e.g. "Re: Submission-1"
+        """
+        subject = subject.strip().lower().split('-')
+        return len(subject) == 2 and subject[0] == 're: submission' \
+                and subject[1].isdigit()\
+                and (1 <= int(subject[1]) <= self.MAX_NUM_SUBMISSION)
+
     def is_review_req(self, subject):
         """
             Param:
@@ -88,6 +101,15 @@ class MailParser:
         """
         subject = subject.strip().lower().split('-')
         return int(subject[-1])
+
+    def get_subm_req(self, id):
+        """
+            Param:
+                id: an integer of submission id
+            Return:
+                Return subject of submission request
+        """
+        return f"Submission-{id}"
 
     def get_review_req(self, id):
         """

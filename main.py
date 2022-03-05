@@ -2,6 +2,10 @@ import os, time, threading, sys, msal, json
 import admin_UI, database
 from mail_handler import MailHandler
 
+DIST_INVITING = 1
+DIST_DISTRIBUTING = 2
+
+
 class App:
     """ 
         App class, this class is used to initialize the whole system.
@@ -21,8 +25,9 @@ class App:
         """Initialize parameters"""
         self.listener = None # Mail handler object listening incoming messages
         self.listener_t = None # listener thread object
-        self.distributor = None # Mail handler object for distributing submissions
-        self.distributor_t = None # distributor thread object
+        self.distributors = [] # Mail handler object for distributing submissions
+        self.distributors_t = [] # distributor thread object
+        
         self.token = None # Authentication token
         self.flow = None # device code flow
         self.monitor_t = None # used to monitor deadline, refresh token, etc.
@@ -52,19 +57,33 @@ class App:
         while self.is_connected:
             self.check_deadline()
             self.refresh_token()
+            for distributor in self.distributors:
+                if self.distributors.distributor_done:
+                    self.distributors.remove(distributor)
             time.sleep(1)
         self.init_param()
     
     def check_deadline(self):
         """
+            Checking submission start date, if there is one,
+            a distributor is created for welcoming
+            
             Checking submission deadline, if there is one,
-            a distributor will be created.
+            a distributor is created for distributing.
         """
+        subm_id = self.db.get_uninvited_subm_id()
+        if subm_id:
+            print(f"Creating distributor to invite subm {subm_id}")
+            distributor = threading.Thread(target=self.create_distributor, args=(subm_id,DIST_INVITING))
+            self.distributors_t.append(distributor)
+            distributor.start()
         subm_id = self.db.get_undistributed_subm_id()
         if subm_id:
             print(f"Creating distributor for {subm_id}")
-            self.distributor_t = threading.Thread(target=self.create_distributor, args=(subm_id,))
-            self.distributor_t.start()
+            distributor = threading.Thread(target=self.create_distributor, args=(subm_id,DIST_DISTRIBUTING))
+            self.distributors_t.append(distributor)
+            distributor.start()
+        
 
     def create_listener(self):
         """
@@ -74,16 +93,22 @@ class App:
         self.listener = MailHandler(self, auth_header)
         self.listener.listen()
 
-    def create_distributor(self, subm_id):
+    def create_distributor(self, subm_id, typ):
         """
             An MailHandler object is created for distributing
             Param:
                 subm_id: submission id that is ready to distribute
+                typ: 
+                    DIST_INVITING: invite submission
+                    DIST_DISTRIBUTING: distributing submission
         """
-        print(f"Created distributor for {subm_id}", flush=True)
         auth_header = {'Authorization': 'Bearer ' + self.token} # API authentication header
-        self.distributor = MailHandler(self, auth_header)
-        self.distributor.distribute_subm(subm_id)
+        distributor = MailHandler(self, auth_header)
+        self.distributors.append(distributor)
+        if typ == DIST_INVITING:
+            distributor.invite_subm(subm_id)
+        elif typ == DIST_DISTRIBUTING:
+            distributor.distribute_subm(subm_id)
 
     def login(self):
         """
@@ -142,8 +167,9 @@ class App:
             self.token = result['access_token']
             auth_header = {'Authorization': 'Bearer ' + self.token}
             self.listener.auth_header_ = auth_header
-            if self.distributor:
-                self.distributor.auth_header_ = auth_header
+            if self.distributors:
+                for distributor in self.distributors:
+                    distributor.auth_header_ = auth_header
     
     def clear_auth_flow(self):
         """Discard authentication flow"""

@@ -3,7 +3,9 @@ These are the prompt message prepend into message
 Format can be HTML with CSS.
 """
 
-
+SUBMISSION_INVITATION = \
+"""
+"""
 
 SUBMISSION_SUCCESS = \
 """<p>Thanks for your submission!<br>We&apos;ve received your submission successfully.</p>
@@ -64,21 +66,31 @@ INVALID_SUBJECT = \
 <p>Kind Regards,<br>Dropbox of Product Design</p>"""
 
 NON_EXISTING_SUBM = \
-"""
-"""
+"""<p>Sorry, this submission isn&apos;t scheduled yet. <br><br></p>
+<p>To submit your work, please send us an new email with subject &quot;submission-x&quot; where &quot;x&quot; is the submission id<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>"""
 
 NON_STARTING_SUBM = \
-"""
+"""<p>Submission {} hasn&apos;t started yet, schedule for this submission:</p>
+<p>Submission: {} - {}</p>
+<p>Review: &nbsp; &nbsp; &nbsp; {} - {}</p>
+<p>Evaluation: &nbsp;{} - {}<br><br></p>
+<p>To submit your work, please send us an new email with subject &quot;submission-x&quot; where &quot;x&quot; is the submission id once the submission starts.<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>
 """
 
-USALATE_SUBMGE_PROMPT = \
-"""
+LATE_SUBM_PROMPT = \
+"""<p>Sorry, submission {} is ended at {}, your submission is not accepted, if you have other questions, please contact instructor.</p>
+<p>To submit your work, please send us an new email with subject &quot;submission-x&quot; where &quot;x&quot; is the submission id.<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>
 """
 
 LATE_REVIEW = \
-"""
+"""<p>Sorry, review for submission {} is ended at {}, your review is not accepted, if you have other questions, please contact instructor.<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>
 """
 
 LATE_EVAL = \
-"""
+"""<p>Sorry, evaluation for submission {} is ended at {}, your review is not accepted, if you have other questions, please contact instructor.<br><br></p>
+<p>Kind Regards,<br>Dropbox of Product Design</p>
 """
