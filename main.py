@@ -58,7 +58,7 @@ class App:
             self.check_deadline()
             self.refresh_token()
             for distributor in self.distributors:
-                if self.distributors.distributor_done:
+                if distributor.distributor_done:
                     self.distributors.remove(distributor)
             time.sleep(1)
         self.init_param()
@@ -71,12 +71,12 @@ class App:
             Checking submission deadline, if there is one,
             a distributor is created for distributing.
         """
-        subm_id = self.db.get_uninvited_subm_id()
-        if subm_id:
-            print(f"Creating distributor to invite subm {subm_id}")
-            distributor = threading.Thread(target=self.create_distributor, args=(subm_id,DIST_INVITING))
-            self.distributors_t.append(distributor)
-            distributor.start()
+        # subm_id = self.db.get_uninvited_subm_id()
+        # if subm_id:
+        #     print(f"Creating distributor to invite subm {subm_id}")
+        #     distributor = threading.Thread(target=self.create_distributor, args=(subm_id,DIST_INVITING))
+        #     self.distributors_t.append(distributor)
+        #     distributor.start()
         subm_id = self.db.get_undistributed_subm_id()
         if subm_id:
             print(f"Creating distributor for {subm_id}")

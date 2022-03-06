@@ -261,8 +261,10 @@ class MailHandler:
                 date sent: the date on sending this request
         """
         content = mail['body']['content']
-        prompt = message_temp.REVIEW_REQUEST_PROMPT if self.parser.is_review(subject) \
-                    else message_temp.EVAL_REQUEST_PROMPT
+        subm_id = self.parser.get_subm_id(subject)
+        prompt = message_temp.REVIEW_REQUEST_PROMPT.format(subm_id) if \
+                            self.parser.is_review_req(subject)\
+                    else message_temp.EVAL_REQUEST_PROMPT.format(subm_id)
         data = {
             "message": {
                 "subject": subject,

@@ -274,6 +274,7 @@ class Database:
                 True on successfully storing
                 False if it exists already
         """
+        print("store review:\nreview_convo_id:", review_convo_id)
         con = sqlite3.connect(self.DATABASE, timeout=self.CON_TIMEOUT)
         con.row_factory = sqlite3.Row
         cur = con.cursor()
